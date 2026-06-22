@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Sidebar from "../problems/components/Sidebar";
 import { useAuth } from "../../context/AuthContext";
 
@@ -6,21 +6,46 @@ const Profile = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { backendUser } = useAuth();
 
-  const userAvatar = backendUser?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuAgIGP3kJBWkWCRd_1qtVQSDRKnCJEu9Jx6Hu-qyKQ7_1v1BRL9FkODk-3Qgs1m-ytPBzg0CtZ_BTQ7OT36VRUyZfuH9yiBuOI0NaLnoEF1dvCchH3xp9xtFkxj1661CAVrOh-yFjY03vq4ImNKJkosfwjT8aS2XPGuaewhDcdO_kWAlSxZ0x1e7hoIBJywTT7I6ZSjW2AzcL0RoBu1kRe3TNcuYw6v-o6ejZrthvu3stRES6oLALVKeTXRv9j4Ht-QhuLV80KB-FGV";
+  const userAvatar = backendUser?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuCGADYytPStVTJfvVJ7-r1HPmvChtPTBqtJ8kssRepjEFW4k8ZlEor_RDkgeRNfSnFXD4NYGE2SgZFbaUr7K04SDw6X2mmKK8OUHjLHr4aloHIBRx9uDPFPnMlt4Z89Kz1Q7tNWknfFi8ovDjbi7Ue4FYruoRXkbbLFCDdnY17F5XPCuRmulDw4A35UHDBJQfucDQbI2Znypasd6tblESxuB3oqrn5SJwaCWSG9iQxMhV46YjbJmGkWRJh7CDhDOtdIfC7lcU9lDXaj";
+
+  // Generate mock heatmap data (52 weeks, 7 days)
+  const heatmapData = useMemo(() => {
+    return Array.from({ length: 52 }, () =>
+      Array.from({ length: 7 }, () => {
+        const rand = Math.random();
+        if (rand > 0.95) return 4;
+        if (rand > 0.85) return 3;
+        if (rand > 0.7) return 2;
+        if (rand > 0.4) return 1;
+        return 0;
+      })
+    );
+  }, []);
+
+  const getHeatmapColor = (level) => {
+    switch (level) {
+      case 4: return "bg-[#3B82F6] shadow-[0_0_5px_#3B82F6]";
+      case 3: return "bg-[#3B82F6]/80";
+      case 2: return "bg-[#3B82F6]/60";
+      case 1: return "bg-[#3B82F6]/30";
+      case 0:
+      default: return "bg-[#181c24]";
+    }
+  };
 
   return (
-    <div className="bg-background text-on-surface font-body-md h-screen overflow-hidden flex selection:bg-primary-container selection:text-on-primary-container">
+    <div className="bg-background text-on-surface font-inter h-screen overflow-hidden flex selection:bg-primary-container selection:text-on-primary-container">
       {/* Left Sidebar */}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Main Container */}
       <main className="flex-1 ml-0 md:ml-64 h-full flex flex-col overflow-hidden relative">
         {/* Mobile Header Toggle */}
-        <div className="md:hidden flex items-center justify-between p-md border-b border-outline-variant/30 glass-panel z-30 sticky top-0">
+        <div className="md:hidden flex items-center justify-between p-4 border-b border-outline-variant/30 bg-surface-container/40 backdrop-blur-md z-30 sticky top-0">
           <div className="flex items-center gap-2">
             <img src="/excode.svg" alt="excode logo" className="w-8 h-8" />
-            <span className="font-headline-md text-headline-md font-bold text-primary tracking-tight">
-              Excode
+            <span className="font-geist text-2xl font-bold text-primary tracking-tight">
+              DevArena
             </span>
           </div>
           <button
@@ -34,255 +59,245 @@ const Profile = () => {
         </div>
 
         {/* Center Content */}
-        <section className="flex-1 h-full overflow-y-auto custom-scrollbar p-md lg:p-lg pb-24">
-          <div className="grid grid-cols-12 gap-lg max-w-[1280px] mx-auto">
+        <section className="flex-1 h-full overflow-y-auto custom-scrollbar p-6 lg:p-8 pb-24">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1280px] mx-auto">
             
-            {/* Left Column: Profile Header (Col Span 3) */}
-            <aside className="col-span-12 lg:col-span-3 space-y-md">
-              <div className="glass-panel rounded-xl p-lg flex flex-col items-center text-center shadow-lg border border-outline-variant/20">
-                <div className="relative mb-md group">
+            {/* Left Sidebar: Profile Details (Col Span 3) */}
+            <aside className="lg:col-span-3 space-y-6">
+              
+              {/* Avatar Card */}
+              <div 
+                className="rounded-xl p-6 flex flex-col items-center text-center border border-white/10"
+                style={{ background: 'rgba(17, 24, 39, 0.4)', backdropFilter: 'blur(12px)' }}
+              >
+                <div className="relative w-32 h-32 mb-4">
                   <img 
-                    className="w-32 h-32 rounded-full object-cover border-2 border-primary/30 p-1 group-hover:border-primary transition-colors duration-300" 
-                    alt="User Profile" 
+                    alt="User Avatar" 
+                    className="w-full h-full rounded-full object-cover border-4 border-surface-container shadow-xl" 
                     src={userAvatar}
                   />
-                  <div className="absolute bottom-1 right-3 w-4 h-4 bg-[#4ade80] border-2 border-surface-container rounded-full" title="Online"></div>
+                  <div className="absolute bottom-0 right-0 bg-primary text-on-primary rounded-full w-8 h-8 flex items-center justify-center font-jetbrains text-sm font-semibold border-2 border-background shadow-lg">
+                    99
+                  </div>
+                </div>
+                <h1 className="text-2xl font-geist font-semibold text-on-surface">{backendUser?.name || "Guest Developer"}</h1>
+                <p className="text-on-surface-variant text-sm font-inter mb-4">@{backendUser?.name?.toLowerCase().replace(/\s/g, '_') || "guest_dev"}</p>
+                <div className="inline-block bg-primary-container/10 text-primary px-2 py-1 rounded-full font-jetbrains text-xs uppercase tracking-wider border border-primary/20 mb-6">
+                  Staff Engineer
                 </div>
                 
-                <h2 className="font-geist text-2xl font-bold text-on-surface mb-1 tracking-tight">
-                  {backendUser?.name || "Guest Developer"}
-                </h2>
-                <p className="font-jetbrains text-xs text-primary mb-5">Full Stack MERN Developer</p>
+                <div className="w-full flex gap-2 mb-6">
+                  <button className="flex-1 bg-primary text-on-primary px-4 py-2 rounded-lg hover:shadow-[0_0_15px_rgba(77,142,255,0.3)] hover:-translate-y-0.5 transition-all text-sm font-inter font-semibold">
+                    Follow
+                  </button>
+                  <button className="px-4 py-2 rounded-lg border border-outline-variant hover:border-primary transition-colors flex items-center justify-center">
+                    <span className="material-symbols-outlined text-on-surface-variant">mail</span>
+                  </button>
+                </div>
                 
-                <div className="flex items-center gap-2 text-on-surface-variant font-inter text-sm mb-2">
-                  <span className="material-symbols-outlined text-sm">location_on</span>
-                  Bengaluru, India
+                <div className="w-full text-left space-y-2 text-sm font-inter text-on-surface-variant">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">location_on</span> San Francisco, CA
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">link</span> <a className="text-primary hover:underline" href="#">{backendUser?.name?.toLowerCase().replace(/\s/g, '') || "guest"}.dev</a>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">calendar_month</span> Joined Sept 2026
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-on-surface-variant font-inter text-sm mb-6">
-                  <span className="material-symbols-outlined text-sm">calendar_month</span>
-                  Joined Mar 2026
-                </div>
-
-                {/* Social Links */}
-                <div className="flex items-center justify-center gap-4 mb-6 w-full">
-                  <button className="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors">
-                    <span className="material-symbols-outlined text-[20px]">code</span>
-                  </button>
-                  <button className="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors">
-                    <span className="material-symbols-outlined text-[20px]">work</span>
-                  </button>
-                  <button className="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors">
-                    <span className="material-symbols-outlined text-[20px]">language</span>
-                  </button>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="w-full space-y-3 border-t border-outline-variant/20 pt-6">
-                  <button className="w-full py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors font-jetbrains text-xs font-semibold tracking-wider flex items-center justify-center gap-2">
-                    <span className="material-symbols-outlined text-[16px]">edit</span>
-                    EDIT PROFILE
-                  </button>
-                  <button className="w-full py-2.5 rounded-lg bg-transparent text-on-surface-variant border border-outline-variant/30 hover:bg-surface-variant/50 transition-colors font-jetbrains text-xs font-semibold tracking-wider flex items-center justify-center gap-2">
-                    <span className="material-symbols-outlined text-[16px]">tune</span>
-                    PREFERENCES
-                  </button>
+              </div>
+              
+              {/* Stats Card */}
+              <div 
+                className="rounded-xl p-6 border border-white/10"
+                style={{ background: 'rgba(17, 24, 39, 0.4)', backdropFilter: 'blur(12px)' }}
+              >
+                <h2 className="text-xl font-geist font-semibold text-on-surface mb-4">Stats Overview</h2>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm font-inter mb-1">
+                      <span className="text-on-surface-variant">Global Rank</span>
+                      <span className="text-primary font-jetbrains font-semibold drop-shadow-[0_0_10px_rgba(173,198,255,0.5)]">#4,291</span>
+                    </div>
+                    <div className="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+                      <div className="h-full bg-primary w-[85%] shadow-[0_0_8px_rgba(173,198,255,0.5)]"></div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-2">
+                    <div className="bg-surface-container p-2 rounded-lg border border-outline-variant/30 text-center">
+                      <span className="block font-jetbrains text-xs uppercase tracking-wider text-on-surface-variant mb-1">Streak</span>
+                      <span className="flex items-center justify-center gap-1 text-2xl font-geist font-semibold text-on-surface">
+                        <span className="material-symbols-outlined text-error text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span> 42
+                      </span>
+                    </div>
+                    <div className="bg-surface-container p-2 rounded-lg border border-outline-variant/30 text-center">
+                      <span className="block font-jetbrains text-xs uppercase tracking-wider text-on-surface-variant mb-1">Total XP</span>
+                      <span className="block text-2xl font-geist font-semibold text-on-surface">14.2k</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </aside>
 
-            {/* Center Column: Activity & Progression (Col Span 6) */}
-            <div className="col-span-12 lg:col-span-6 space-y-lg">
+            {/* Main Content Area (Col Span 9) */}
+            <div className="lg:col-span-9 space-y-8">
               
-              {/* XP Progress Card */}
-              <div className="glass-panel rounded-xl p-lg shadow-[0_0_15px_rgba(0,0,0,0.2)] border border-outline-variant/20 hover:border-primary/30 transition-colors duration-300">
-                <div className="flex justify-between items-end mb-3">
+              {/* Activity Heatmap */}
+              <div 
+                className="rounded-xl p-6 border border-primary/20 shadow-[0_0_15px_rgba(173,198,255,0.1)] transition-colors hover:border-primary/40"
+                style={{ background: 'rgba(17, 24, 39, 0.4)', backdropFilter: 'blur(12px)' }}
+              >
+                <div className="flex justify-between items-end mb-6">
                   <div>
-                    <p className="font-jetbrains text-xs text-on-surface-variant mb-1 uppercase tracking-wider">Current Rank</p>
-                    <h3 className="font-geist text-3xl font-bold text-primary tracking-tight">Level 18</h3>
+                    <h2 className="text-2xl font-geist font-semibold text-on-surface tracking-tight">Activity</h2>
+                    <p className="text-on-surface-variant text-sm font-inter mt-1">842 submissions in the last year</p>
                   </div>
-                  <div className="text-right">
-                    <span className="font-jetbrains text-sm text-on-surface font-semibold">12,450</span>
-                    <span className="font-jetbrains text-xs text-on-surface-variant"> / 15,000 XP</span>
+                  <div className="hidden sm:flex items-center gap-2 text-sm font-inter text-on-surface-variant">
+                    <span>Less</span>
+                    <div className="flex gap-[2px]">
+                      <div className={`w-3 h-3 rounded-[2px] ${getHeatmapColor(0)}`}></div>
+                      <div className={`w-3 h-3 rounded-[2px] ${getHeatmapColor(1)}`}></div>
+                      <div className={`w-3 h-3 rounded-[2px] ${getHeatmapColor(2)}`}></div>
+                      <div className={`w-3 h-3 rounded-[2px] ${getHeatmapColor(3)}`}></div>
+                      <div className={`w-3 h-3 rounded-[2px] ${getHeatmapColor(4)}`}></div>
+                    </div>
+                    <span>More</span>
                   </div>
                 </div>
-                <div className="w-full h-2 bg-surface-variant rounded-full overflow-hidden mt-4">
-                  <div className="h-full bg-gradient-to-r from-blue-500 to-primary rounded-full relative" style={{ width: "83%" }}>
-                    <div className="absolute right-0 top-0 bottom-0 w-8 bg-white/20 blur-sm"></div>
-                  </div>
-                </div>
-              </div>
+                <div className="overflow-x-auto pb-2 custom-scrollbar">
+                  <div className="min-w-max">
+                    {/* Month Labels */}
+                    <div className="flex text-xs font-inter text-on-surface-variant mb-2 ml-8">
+                      {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, i) => (
+                        <div key={month} style={{ width: '65px' }}>
+                          {month}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      {/* Day Labels */}
+                      <div className="flex flex-col gap-[3px] text-[10px] font-inter text-on-surface-variant">
+                        <div className="h-3 flex items-center"></div>
+                        <div className="h-3 flex items-center">Mon</div>
+                        <div className="h-3 flex items-center"></div>
+                        <div className="h-3 flex items-center">Wed</div>
+                        <div className="h-3 flex items-center"></div>
+                        <div className="h-3 flex items-center">Fri</div>
+                        <div className="h-3 flex items-center"></div>
+                      </div>
 
-              {/* Developer Skill Radar (Bento Grid Style) */}
-              <div className="glass-panel rounded-xl p-lg border border-outline-variant/20">
-                <div className="flex items-center gap-2 mb-6">
-                  <span className="material-symbols-outlined text-primary">radar</span>
-                  <h3 className="font-geist text-xl font-bold">Skill Matrix</h3>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  
-                  {/* Skill Card 1 */}
-                  <div className="bg-surface-container-high p-4 rounded-lg border border-outline-variant/20">
-                    <div className="flex justify-between font-jetbrains text-xs mb-3">
-                      <span className="text-on-surface">React.js</span>
-                      <span className="text-primary font-semibold">95%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-surface-variant rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full shadow-[0_0_8px_rgba(173,198,255,0.6)]" style={{ width: "95%" }}></div>
+                      {/* Heatmap Grid */}
+                      <div className="inline-flex gap-[3px]">
+                        {heatmapData.map((week, wIndex) => (
+                          <div key={wIndex} className="flex flex-col gap-[3px]">
+                            {week.map((level, dIndex) => (
+                              <div 
+                                key={`${wIndex}-${dIndex}`}
+                                className={`w-3 h-3 rounded-[2px] transition-transform hover:scale-125 cursor-pointer z-0 hover:z-10 ${getHeatmapColor(level)}`}
+                                title={`${level * 3} submissions`}
+                              ></div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-
-                  {/* Skill Card 2 */}
-                  <div className="bg-surface-container-high p-4 rounded-lg border border-outline-variant/20">
-                    <div className="flex justify-between font-jetbrains text-xs mb-3">
-                      <span className="text-on-surface">Node.js</span>
-                      <span className="text-primary font-semibold">88%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-surface-variant rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full shadow-[0_0_8px_rgba(173,198,255,0.6)]" style={{ width: "88%" }}></div>
-                    </div>
-                  </div>
-
-                  {/* Skill Card 3 */}
-                  <div className="bg-surface-container-high p-4 rounded-lg border border-outline-variant/20">
-                    <div className="flex justify-between font-jetbrains text-xs mb-3">
-                      <span className="text-on-surface">MongoDB</span>
-                      <span className="text-primary font-semibold">82%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-surface-variant rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full shadow-[0_0_8px_rgba(173,198,255,0.6)]" style={{ width: "82%" }}></div>
-                    </div>
-                  </div>
-
-                  {/* Skill Card 4 */}
-                  <div className="bg-surface-container-high p-4 rounded-lg border border-outline-variant/20">
-                    <div className="flex justify-between font-jetbrains text-xs mb-3">
-                      <span className="text-on-surface">TypeScript</span>
-                      <span className="text-primary font-semibold">75%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-surface-variant rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full shadow-[0_0_8px_rgba(173,198,255,0.6)]" style={{ width: "75%" }}></div>
-                    </div>
-                  </div>
-                  
                 </div>
               </div>
 
-              {/* Recent Activity Feed */}
-              <div className="glass-panel rounded-xl p-lg border border-outline-variant/20">
-                <div className="flex items-center gap-2 mb-6">
-                  <span className="material-symbols-outlined text-primary">history</span>
-                  <h3 className="font-geist text-xl font-bold">Recent Activity</h3>
-                </div>
+              {/* Bento Grid: Problem Solving & Achievements */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
-                <div className="pl-6 border-l-2 border-outline-variant/20 space-y-8 mt-2">
-                  <div className="relative">
-                    <div className="absolute -left-[31px] top-1 w-3.5 h-3.5 bg-primary rounded-full shadow-[0_0_10px_rgba(173,198,255,0.6)]"></div>
-                    <p className="font-inter text-xs text-on-surface-variant mb-1">2 hours ago</p>
-                    <p className="font-inter text-sm text-on-surface font-semibold">Completed "Advanced API Rate Limiting" Challenge</p>
-                    <p className="font-jetbrains text-xs text-primary mt-2">+150 XP</p>
+                {/* Problem Solving Stats */}
+                <div 
+                  className="rounded-xl p-6 flex flex-col border border-white/10"
+                  style={{ background: 'rgba(17, 24, 39, 0.4)', backdropFilter: 'blur(12px)' }}
+                >
+                  <h3 className="text-xl font-geist font-semibold text-on-surface mb-4">Problem Solving</h3>
+                  <div className="flex-grow flex items-center justify-center py-4 relative">
+                    {/* Circular Progress SVG */}
+                    <div className="relative w-40 h-40 flex items-center justify-center rounded-full border-8 border-surface-container">
+                      <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" fill="transparent" r="46" stroke="rgba(77, 142, 255, 0.1)" strokeWidth="8"></circle>
+                        <circle 
+                          className="transition-all duration-1000" 
+                          cx="50" cy="50" fill="transparent" r="46" stroke="#4d8eff" 
+                          strokeDasharray="289" strokeDashoffset="100" strokeWidth="8"
+                          style={{ filter: 'drop-shadow(0px 0px 4px rgba(77, 142, 255, 0.5))' }}
+                        ></circle>
+                      </svg>
+                      <div className="text-center mt-2">
+                        <span className="block text-3xl font-geist font-bold text-on-surface leading-none mb-1">342</span>
+                        <span className="block font-jetbrains text-[10px] uppercase tracking-wider text-on-surface-variant">Solved</span>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className="relative">
-                    <div className="absolute -left-[31px] top-1 w-3.5 h-3.5 bg-surface-variant border-2 border-outline-variant/50 rounded-full"></div>
-                    <p className="font-inter text-xs text-on-surface-variant mb-1">Yesterday</p>
-                    <p className="font-inter text-sm text-on-surface">Earned <span className="text-blue-300 font-semibold">30-Day Streak</span> Badge</p>
-                  </div>
-                  
-                  <div className="relative">
-                    <div className="absolute -left-[31px] top-1 w-3.5 h-3.5 bg-surface-variant border-2 border-outline-variant/50 rounded-full"></div>
-                    <p className="font-inter text-xs text-on-surface-variant mb-1">3 days ago</p>
-                    <p className="font-inter text-sm text-on-surface">Published project: <a className="text-primary hover:underline font-semibold" href="#">Real-time Chat Socket.io</a></p>
+                  <div className="space-y-2 mt-auto pt-4 border-t border-outline-variant/20">
+                    <div className="flex justify-between items-center text-sm font-inter">
+                      <span className="text-[#10B981] font-semibold">Easy</span>
+                      <span className="text-on-surface font-jetbrains">150 <span className="text-on-surface-variant text-xs ml-1">/ 300</span></span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm font-inter">
+                      <span className="text-[#F59E0B] font-semibold">Medium</span>
+                      <span className="text-on-surface font-jetbrains">142 <span className="text-on-surface-variant text-xs ml-1">/ 400</span></span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm font-inter">
+                      <span className="text-[#EF4444] font-semibold">Hard</span>
+                      <span className="text-on-surface font-jetbrains">50 <span className="text-on-surface-variant text-xs ml-1">/ 150</span></span>
+                    </div>
                   </div>
                 </div>
+
+                {/* Recent Achievements Grid */}
+                <div 
+                  className="rounded-xl p-6 border border-white/10"
+                  style={{ background: 'rgba(17, 24, 39, 0.4)', backdropFilter: 'blur(12px)' }}
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-geist font-semibold text-on-surface">Badges</h3>
+                    <a className="text-primary text-sm font-inter hover:underline" href="#">View All</a>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    
+                    {/* Badge 1 */}
+                    <div className="bg-gradient-to-br from-surface-container to-surface-container-lowest p-4 rounded-lg border border-outline-variant/30 flex flex-col items-center text-center relative overflow-hidden group hover:border-outline-variant transition-colors">
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#FCD34D]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <span className="material-symbols-outlined text-[40px] text-[#FCD34D] mb-2 drop-shadow-[0_0_8px_rgba(252,211,77,0.5)]" style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
+                      <span className="text-sm font-inter text-on-surface font-semibold">Bug Slayer</span>
+                      <span className="font-jetbrains text-[10px] uppercase tracking-wider text-on-surface-variant mt-1">Lvl 5</span>
+                    </div>
+                    
+                    {/* Badge 2 */}
+                    <div className="bg-gradient-to-br from-surface-container to-surface-container-lowest p-4 rounded-lg border border-outline-variant/30 flex flex-col items-center text-center relative overflow-hidden group hover:border-outline-variant transition-colors">
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#10B981]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <span className="material-symbols-outlined text-[40px] text-[#10B981] mb-2 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+                      <span className="text-sm font-inter text-on-surface font-semibold">Speed Demon</span>
+                      <span className="font-jetbrains text-[10px] uppercase tracking-wider text-on-surface-variant mt-1">Lvl 3</span>
+                    </div>
+                    
+                    {/* Badge 3 */}
+                    <div className="bg-gradient-to-br from-surface-container to-surface-container-lowest p-4 rounded-lg border border-outline-variant/30 flex flex-col items-center text-center relative overflow-hidden group hover:border-outline-variant transition-colors">
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <span className="material-symbols-outlined text-[40px] text-[#8B5CF6] mb-2 drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>
+                      <span className="text-sm font-inter text-on-surface font-semibold">DP Master</span>
+                      <span className="font-jetbrains text-[10px] uppercase tracking-wider text-on-surface-variant mt-1">Lvl 2</span>
+                    </div>
+                    
+                    {/* Badge 4 (Locked) */}
+                    <div className="bg-gradient-to-br from-surface-container to-surface-container-lowest p-4 rounded-lg border border-outline-variant/30 flex flex-col items-center text-center relative overflow-hidden group grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer">
+                      <span className="material-symbols-outlined text-[40px] text-surface-variant mb-2">lock</span>
+                      <span className="text-sm font-inter text-on-surface font-semibold">Graph Guru</span>
+                      <span className="font-jetbrains text-[10px] uppercase tracking-wider text-on-surface-variant mt-1">Locked</span>
+                    </div>
+                    
+                  </div>
+                </div>
+
               </div>
 
             </div>
-
-            {/* Right Panel: Stats & Achievements (Col Span 3) */}
-            <div className="col-span-12 lg:col-span-3 space-y-lg">
-              
-              {/* Quick Stats Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
-                <div className="glass-panel rounded-xl p-4 flex items-center justify-between border border-outline-variant/20 hover:border-primary/20 transition-colors">
-                  <div>
-                    <p className="font-jetbrains text-xs text-on-surface-variant uppercase mb-1 tracking-wider">Global Rank</p>
-                    <p className="font-geist text-2xl text-primary font-bold">#842</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-[0_0_10px_rgba(173,198,255,0.2)]">
-                    <span className="material-symbols-outlined text-[20px]">public</span>
-                  </div>
-                </div>
-                
-                <div className="glass-panel rounded-xl p-4 flex items-center justify-between border border-outline-variant/20 hover:border-[#ef4444]/30 transition-colors">
-                  <div>
-                    <p className="font-jetbrains text-xs text-on-surface-variant uppercase mb-1 tracking-wider">Current Streak</p>
-                    <p className="font-geist text-2xl text-on-surface font-bold">15 <span className="text-sm font-normal text-on-surface-variant">Days</span></p>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-[#ef4444]/10 flex items-center justify-center text-[#ef4444] shadow-[0_0_10px_rgba(239,68,68,0.2)]">
-                    <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-                  </div>
-                </div>
-                
-                <div className="glass-panel rounded-xl p-4 flex items-center justify-between border border-outline-variant/20 hover:border-[#10b981]/30 transition-colors">
-                  <div>
-                    <p className="font-jetbrains text-xs text-on-surface-variant uppercase mb-1 tracking-wider">Solved</p>
-                    <p className="font-geist text-2xl text-on-surface font-bold">235</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-[#10b981]/10 flex items-center justify-center text-[#10b981] shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-                    <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Achievements Grid */}
-              <div className="glass-panel rounded-xl p-5 border border-outline-variant/20">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="material-symbols-outlined text-primary">workspace_premium</span>
-                  <h3 className="font-geist text-lg font-bold">Badges</h3>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="aspect-square rounded-lg bg-surface-container-high border border-outline-variant/30 flex items-center justify-center relative group overflow-hidden hover:border-primary/50 transition-colors">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <span className="material-symbols-outlined text-3xl text-[#fde047] drop-shadow-[0_0_5px_rgba(253,224,71,0.5)]" style={{ fontVariationSettings: "'FILL' 1" }}>stars</span>
-                  </div>
-                  <div className="aspect-square rounded-lg bg-surface-container-high border border-outline-variant/30 flex items-center justify-center relative group overflow-hidden hover:border-primary/50 transition-colors">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <span className="material-symbols-outlined text-3xl text-primary drop-shadow-[0_0_5px_rgba(173,198,255,0.5)]" style={{ fontVariationSettings: "'FILL' 1" }}>code_blocks</span>
-                  </div>
-                  <div className="aspect-square rounded-lg bg-surface-container-high border border-outline-variant/30 flex items-center justify-center relative group overflow-hidden hover:border-primary/50 transition-colors">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <span className="material-symbols-outlined text-3xl text-[#f97316] drop-shadow-[0_0_5px_rgba(249,115,22,0.5)]" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-                  </div>
-                  <div className="aspect-square rounded-lg bg-surface-container-high border border-outline-variant/30 flex items-center justify-center relative opacity-40 grayscale hover:opacity-80 transition-opacity">
-                    <span className="material-symbols-outlined text-3xl text-on-surface-variant" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>
-                  </div>
-                  <div className="aspect-square rounded-lg bg-surface-container-high border border-outline-variant/30 flex items-center justify-center relative opacity-40 grayscale hover:opacity-80 transition-opacity">
-                    <span className="material-symbols-outlined text-3xl text-on-surface-variant" style={{ fontVariationSettings: "'FILL' 1" }}>bug_report</span>
-                  </div>
-                  <div className="aspect-square rounded-lg bg-surface-container-high border border-outline-variant/30 flex items-center justify-center relative opacity-40 grayscale hover:opacity-80 transition-opacity">
-                    <span className="material-symbols-outlined text-3xl text-on-surface-variant" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>
-                  </div>
-                </div>
-                <button className="w-full mt-4 text-center font-jetbrains text-xs text-on-surface-variant hover:text-primary transition-colors tracking-wider">VIEW ALL (12)</button>
-              </div>
-
-              {/* DevArena Pro CTA */}
-              <div className="rounded-xl p-5 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-surface-container-high via-surface-container to-primary/20 group-hover:to-primary/30 transition-all duration-500"></div>
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 blur-3xl rounded-full"></div>
-                <div className="relative z-10 border border-primary/30 rounded-xl p-5 bg-surface-container/40 backdrop-blur-sm">
-                  <h4 className="font-geist text-xl font-bold text-on-surface mb-2 flex items-center gap-2">
-                    Excode <span className="px-2 py-0.5 rounded text-[10px] bg-primary text-on-primary font-jetbrains uppercase tracking-wider">Pro</span>
-                  </h4>
-                  <p className="font-inter text-xs text-on-surface-variant mb-4 leading-relaxed">Unlock advanced analytics, private challenges, and AI-assisted code reviews.</p>
-                  <button className="w-full py-2.5 rounded-lg bg-primary text-on-primary font-jetbrains text-xs font-bold uppercase tracking-wider hover:brightness-110 transition-all shadow-[0_0_15px_rgba(173,198,255,0.2)] hover:shadow-[0_0_20px_rgba(173,198,255,0.4)]">
-                    Upgrade Now
-                  </button>
-                </div>
-              </div>
-
-            </div>
-
           </div>
         </section>
       </main>
