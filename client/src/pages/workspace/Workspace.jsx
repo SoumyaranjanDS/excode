@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 
 const INITIAL_CODE = `import { db } from '../db/postgres';
@@ -109,6 +109,30 @@ const Workspace = () => {
   return (
     <div className="bg-[#0f131c] text-[#dfe2ee] h-screen flex flex-col overflow-hidden font-inter">
       
+      {/* Workspace Top Navigation */}
+      <header className="h-12 border-b border-white/10 bg-[#181c24] flex items-center justify-between px-4 shrink-0 z-20 shadow-sm shadow-black/20">
+        <div className="flex items-center gap-4">
+          <Link to="/problems" className="flex items-center gap-2 text-[#c2c6d6] hover:text-white transition-colors group">
+            <span className="material-symbols-outlined text-[20px] group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
+            <span className="text-sm font-medium">Problems</span>
+          </Link>
+          <div className="w-px h-5 bg-white/10 hidden sm:block"></div>
+          <div className="items-center gap-2 hidden sm:flex">
+            <span className="text-sm font-medium text-white truncate max-w-[200px] lg:max-w-[400px]">Fix Authentication Race Condition</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button className="text-[#c2c6d6] hover:text-white transition-colors flex items-center justify-center p-1.5 rounded hover:bg-white/5">
+            <span className="material-symbols-outlined text-[20px]">settings</span>
+          </button>
+          <div className="w-px h-5 bg-white/10 hidden sm:block"></div>
+          <Link to="/dashboard" className="w-7 h-7 rounded-full bg-gradient-to-r from-primary to-primary-container text-[#002e6a] flex items-center justify-center font-bold text-xs hover:opacity-90 transition-opacity ml-1">
+            S
+          </Link>
+        </div>
+      </header>
+
       {/* Main Workspace */}
       <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         
