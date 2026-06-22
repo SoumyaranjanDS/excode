@@ -40,6 +40,29 @@
   --color-on-error-container: #ffdad6;
   --color-background: #0f131c;
   --color-on-background: #dfe2ee;
+  
+  --color-surface-variant: #31353e;
+  --color-primary-fixed: #d8e2ff;
+  --color-on-primary-fixed: #001a42;
+  --color-primary-fixed-dim: #adc6ff;
+  --color-on-primary-fixed-variant: #004395;
+  --color-secondary-fixed: #dce2f7;
+  --color-on-secondary-fixed: #141b2b;
+  --color-secondary-fixed-dim: #c0c6db;
+  --color-on-secondary-fixed-variant: #404758;
+  --color-tertiary-fixed: #d9e3f6;
+  --color-on-tertiary-fixed: #121c2a;
+  --color-tertiary-fixed-dim: #bdc7d9;
+  --color-on-tertiary-fixed-variant: #3d4756;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+  --spacing-gutter: 24px;
+  --spacing-container-max: 1280px;
 
   --font-geist: "Geist", system-ui, sans-serif;
   --font-inter: "Inter", system-ui, sans-serif;
@@ -173,5 +196,54 @@ body {
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  .text-display-lg { font-size: 48px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 700; }
+  .text-label-caps { font-size: 12px; line-height: 1; letter-spacing: 0.05em; font-weight: 600; }
+  .text-code-sm { font-size: 12px; line-height: 1.6; font-weight: 400; }
+  .text-headline-md { font-size: 24px; line-height: 1.3; font-weight: 600; }
+  .text-headline-lg { font-size: 32px; line-height: 1.2; letter-spacing: -0.02em; font-weight: 600; }
+  .text-body-sm { font-size: 14px; line-height: 1.5; font-weight: 400; }
+  .text-body-md { font-size: 16px; line-height: 1.5; font-weight: 400; }
+  .text-body-lg { font-size: 18px; line-height: 1.6; font-weight: 400; }
+  .text-code-md { font-size: 14px; line-height: 1.6; font-weight: 400; }
+  
+  .font-display-lg { font-family: "Geist", system-ui, sans-serif; }
+  .font-label-caps { font-family: "JetBrains Mono", monospace; }
+  .font-code-sm { font-family: "JetBrains Mono", monospace; }
+  .font-headline-md { font-family: "Geist", system-ui, sans-serif; }
+  .font-headline-lg { font-family: "Geist", system-ui, sans-serif; }
+  .font-body-sm { font-family: "Inter", system-ui, sans-serif; }
+  .font-body-md { font-family: "Inter", system-ui, sans-serif; }
+  .font-body-lg { font-family: "Inter", system-ui, sans-serif; }
+  .font-code-md { font-family: "JetBrains Mono", monospace; }
+
+  .glass-panel {
+    background: rgba(17, 24, 39, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  .glow-hover:hover {
+    box-shadow: 0px 0px 15px rgba(59, 130, 246, 0.3);
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  .scroll-hidden::-webkit-scrollbar {
+    display: none;
   }
 }

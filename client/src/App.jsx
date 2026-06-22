@@ -14,8 +14,8 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/dashboard/Dashboard";
 
-//components
-import Problems from "./components/Problems";
+import ProblemsExplorer from "./pages/problems/ProblemsExplorer";
+import Workspace from "./pages/workspace/Workspace";
 import Leaderboard from "./components/Leaderboard";
 import Community from "./components/Community";
 
@@ -40,7 +40,7 @@ const Layout = () => {
     <ReactLenis root ref={lenisRef} autoRaf={false} options={{ lerp: 0.1, duration: 1.2, smoothTouch: false }}>
       <div className="flex flex-col min-h-screen w-full bg-background text-on-background">
         <Navbar />
-        <main className="grow flex flex-col">
+        <main className="grow flex flex-col pt-24">
           <Outlet />
         </main>
         <Footer />
@@ -67,6 +67,10 @@ const App = () => {
           path: "dashboard",
           element: <Dashboard />,
         },
+        {
+          path: "community",
+          element: <Community />,
+        },
       ],
     },
     {
@@ -79,15 +83,11 @@ const App = () => {
     },
     {
       path: "/problems",
-      element: <Problems />,
+      element: <ProblemsExplorer />,
     },
     {
-      path: "/leaderboard",
-      element: <Leaderboard />,
-    },
-    {
-      path: "/community",
-      element: <Community />,
+      path: "/workspace/:problemId",
+      element: <Workspace />,
     },
   ]);
 

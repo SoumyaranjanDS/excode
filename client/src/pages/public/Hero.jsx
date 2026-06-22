@@ -9,7 +9,7 @@ const Hero = () => {
   return (
     <section className="relative w-full overflow-hidden">
         {/* Lightfall Background */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-full w-[1200px] md:w-full md:left-0 md:translate-x-0" style={{ zIndex: 0 }}>
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-[calc(100%+96px)] w-[1200px] md:w-full md:left-0 md:translate-x-0" style={{ zIndex: 0 }}>
             <Lightfall
                 colors={['#A6C8FF', '#5227FF', '#FF9FFC']}
                 backgroundColor="#0A29FF"
@@ -29,7 +29,7 @@ const Hero = () => {
             />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12 md:pt-20 md:pb-24 text-center relative z-10 w-full mt-[150px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12 md:pt-20 md:pb-24 text-center relative z-10 w-full mt-[54px]">
             <h1 
             className="text-5xl md:text-7xl font-jetbrains font-bold mb-6 mt-12 bg-clip-text text-transparent"
             style={{ backgroundImage: 'linear-gradient(90deg, #adc6ff, #ffffff)' }}

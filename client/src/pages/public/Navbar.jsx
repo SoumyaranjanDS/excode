@@ -34,8 +34,6 @@ const Navbar = () => {
     navigate("/");
   };
 
-
-
   const DesktopAuth = (
     <>
       {backendUser ? (
@@ -56,13 +54,17 @@ const Navbar = () => {
               </div>
             )}
           </button>
-          
+
           {/* Profile Dropdown */}
           {profileDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 rounded-xl bg-surface-container shadow-lg border border-outline-variant/50 overflow-hidden transform opacity-100 scale-100 transition-all duration-200 origin-top-right">
               <div className="px-4 py-3 border-b border-outline-variant/30">
-                <p className="text-sm text-on-surface font-medium truncate">{backendUser.name}</p>
-                <p className="text-xs text-on-surface-variant truncate">{backendUser.email}</p>
+                <p className="text-sm text-on-surface font-medium truncate">
+                  {backendUser.name}
+                </p>
+                <p className="text-xs text-on-surface-variant truncate">
+                  {backendUser.email}
+                </p>
               </div>
               <Link
                 to="/dashboard"
@@ -123,8 +125,12 @@ const Navbar = () => {
               </div>
             )}
             <div>
-              <div className="text-base font-medium text-on-surface">{backendUser.name}</div>
-              <div className="text-sm font-medium text-on-surface-variant">{backendUser.email}</div>
+              <div className="text-base font-medium text-on-surface">
+                {backendUser.name}
+              </div>
+              <div className="text-sm font-medium text-on-surface-variant">
+                {backendUser.email}
+              </div>
             </div>
           </div>
           <div className="flex flex-col gap-2">
@@ -177,7 +183,7 @@ const Navbar = () => {
   return (
     <PillNav
       logo="/excode.svg"
-      logoAlt="DevArena"
+      logoAlt="Excode"
       items={NAV_ITEMS}
       rightContent={DesktopAuth}
       mobileBottomContent={MobileAuth}
