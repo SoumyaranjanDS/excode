@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
-import { useAuth } from '../../context/AuthContext';
 
 const INITIAL_CODE = `import { db } from '../db/postgres';
 import { redis } from '../cache/redisClient';
@@ -29,10 +28,62 @@ export const registerUser = async (userData) => {
 
 const Workspace = () => {
   const { problemId } = useParams();
-  const { backendUser } = useAuth();
+  // TODO: Use problemId to fetch problem data
+  console.log("Workspace for problem:", problemId);
   const [code, setCode] = useState(INITIAL_CODE);
   const [activeTab, setActiveTab] = useState('auth.service.js');
   const [terminalTab, setTerminalTab] = useState('Terminal');
+
+  // Custom resizing state
+  const [leftWidth, setLeftWidth] = useState(320);
+  const [rightWidth, setRightWidth] = useState(280);
+  const [terminalHeight, setTerminalHeight] = useState(256);
+
+  const [isDraggingLeft, setIsDraggingLeft] = useState(false);
+  const [isDraggingRight, setIsDraggingRight] = useState(false);
+  const [isDraggingTerminal, setIsDraggingTerminal] = useState(false);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isDraggingLeft) {
+        let newWidth = e.clientX;
+        if (newWidth < 70) newWidth = 70; // 320 - 250
+        if (newWidth > 570) newWidth = 570; // 320 + 250
+        setLeftWidth(newWidth);
+      } else if (isDraggingRight) {
+        let newWidth = document.body.clientWidth - e.clientX;
+        if (newWidth < 30) newWidth = 30; // 280 - 250
+        if (newWidth > 530) newWidth = 530; // 280 + 250
+        setRightWidth(newWidth);
+      } else if (isDraggingTerminal) {
+        let newHeight = document.body.clientHeight - e.clientY;
+        if (newHeight < 50) newHeight = 50; 
+        if (newHeight > 506) newHeight = 506; // 256 + 250
+        setTerminalHeight(newHeight);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingLeft(false);
+      setIsDraggingRight(false);
+      setIsDraggingTerminal(false);
+    };
+
+    if (isDraggingLeft || isDraggingRight || isDraggingTerminal) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = isDraggingTerminal ? 'row-resize' : 'col-resize';
+    } else {
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingLeft, isDraggingRight, isDraggingTerminal]);
 
   const handleEditorDidMount = (editor, monaco) => {
     // Define a custom theme that matches the specific #0a0e16 background
@@ -62,8 +113,11 @@ const Workspace = () => {
       <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         
         {/* Left Panel: Problem Description */}
-        <aside className="w-full lg:w-[320px] xl:w-[400px] flex-shrink-0 border-r border-white/10 bg-[#0f131c] flex flex-col h-[400px] lg:h-auto overflow-hidden">
-          <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#181c24]">
+        <aside 
+          style={{ width: `${leftWidth}px` }}
+          className="flex flex-col bg-[#0f131c] border-b lg:border-b-0 shrink-0 relative"
+        >
+          <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#181c24] shrink-0">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-[20px]">description</span>
               <span className="text-xs font-jetbrains uppercase tracking-wider font-semibold">Description</span>
@@ -110,11 +164,19 @@ assert.isTrue(sessionValid); // Failing ~5% of time`}
           </div>
         </aside>
 
+        {/* Left Resize Handle */}
+        <div 
+          onMouseDown={(e) => { e.preventDefault(); setIsDraggingLeft(true); }}
+          className="w-1 cursor-col-resize bg-white/10 hover:bg-primary/50 active:bg-primary transition-colors flex items-center justify-center relative z-10 shrink-0"
+        >
+          <div className="absolute rounded-full bg-white/20 pointer-events-none w-0.5 h-6" />
+        </div>
+
         {/* Center Panel: Editor & Terminal */}
         <div className="flex-1 flex flex-col min-w-0 bg-[#0a0e16]">
           
           {/* Editor Header */}
-          <div className="h-10 border-b border-white/10 bg-[#181c24] flex items-center px-2 gap-2 overflow-x-auto scroll-hidden">
+          <div className="h-10 border-b border-white/10 bg-[#181c24] flex items-center px-2 gap-2 overflow-x-auto scroll-hidden shrink-0">
             <div 
               onClick={() => setActiveTab('auth.service.js')}
               className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'auth.service.js' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}
@@ -146,20 +208,32 @@ assert.isTrue(sessionValid); // Failing ~5% of time`}
                 scrollBeyondLastLine: false,
                 lineHeight: 24,
                 padding: { top: 16 },
-                quickSuggestions: false, // Turn off suggestions as requested
+                quickSuggestions: false,
                 suggestOnTriggerCharacters: false,
                 wordBasedSuggestions: false,
                 parameterHints: { enabled: false },
                 renderLineHighlight: "all",
                 hideCursorInOverviewRuler: true,
-                overviewRulerBorder: false
+                overviewRulerBorder: false,
+                automaticLayout: true
               }}
             />
           </div>
 
-          {/* Terminal / Output Panel */}
-          <div className="h-64 border-t border-white/10 bg-[#0f131c] flex flex-col shrink-0">
-            <div className="flex items-center justify-between px-4 border-b border-white/10 bg-[#181c24] h-10">
+          {/* Terminal Resize Handle */}
+          <div 
+            onMouseDown={(e) => { e.preventDefault(); setIsDraggingTerminal(true); }}
+            className="h-1 cursor-row-resize bg-white/10 hover:bg-primary/50 active:bg-primary transition-colors flex items-center justify-center relative z-10 shrink-0"
+          >
+            <div className="absolute rounded-full bg-white/20 pointer-events-none h-0.5 w-6" />
+          </div>
+
+          {/* Terminal Section */}
+          <div 
+            style={{ height: `${terminalHeight}px` }}
+            className="bg-[#0f131c] flex flex-col shrink-0"
+          >
+            <div className="flex items-center justify-between px-4 border-b border-white/10 bg-[#181c24] h-10 shrink-0">
               <div className="flex items-center gap-4 h-full">
                 {['Terminal', 'Test Results', 'Console'].map(tab => (
                   <button 
@@ -185,12 +259,22 @@ assert.isTrue(sessionValid); // Failing ~5% of time`}
               </div>
             </div>
           </div>
-          
+        </div>
+
+        {/* Right Resize Handle */}
+        <div 
+          onMouseDown={(e) => { e.preventDefault(); setIsDraggingRight(true); }}
+          className="w-1 cursor-col-resize bg-white/10 hover:bg-primary/50 active:bg-primary transition-colors flex items-center justify-center relative z-10 shrink-0"
+        >
+          <div className="absolute rounded-full bg-white/20 pointer-events-none w-0.5 h-6" />
         </div>
 
         {/* Right Panel: AI & Actions */}
-        <aside className="w-full lg:w-[280px] flex-shrink-0 border-l border-white/10 bg-[#0f131c] flex flex-col h-[400px] lg:h-auto">
-          <div className="p-3 border-b border-white/10 bg-[#181c24] flex justify-between items-center h-10">
+        <aside 
+          style={{ width: `${rightWidth}px` }}
+          className="flex flex-col bg-[#0f131c] border-t lg:border-t-0 shrink-0 relative"
+        >
+          <div className="p-3 border-b border-white/10 bg-[#181c24] flex justify-between items-center h-10 shrink-0">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[#bdc7d9] text-[20px]">smart_toy</span>
               <span className="text-xs font-jetbrains uppercase font-semibold text-white">Arena AI</span>
@@ -198,7 +282,6 @@ assert.isTrue(sessionValid); // Failing ~5% of time`}
           </div>
           
           <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
-            
             {/* AI Hint Card */}
             <div className="bg-[#262a33] rounded-lg border border-white/10 p-4">
               <div className="flex items-start gap-2 mb-2">
@@ -231,7 +314,6 @@ assert.isTrue(sessionValid); // Failing ~5% of time`}
                 </li>
               </ul>
             </div>
-            
           </div>
           
           {/* Actions Bottom Bar */}
