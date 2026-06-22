@@ -14,6 +14,7 @@ import ComingSoon from "./pages/public/ComingSoon";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/dashboard/Dashboard";
+import Profile from "./pages/profile/Profile";
 
 import ProblemsExplorer from "./pages/problems/ProblemsExplorer";
 import Workspace from "./pages/workspace/Workspace";
@@ -42,7 +43,7 @@ const Layout = () => {
     <ReactLenis root ref={lenisRef} autoRaf={false} options={{ lerp: 0.1, duration: 1.2, smoothTouch: false }}>
       <div className="flex flex-col min-h-screen w-full bg-background text-on-background relative">
         <Navbar />
-        <main className="grow flex flex-col pt-24">
+        <main className="grow flex flex-col">
           <Outlet />
         </main>
         <Footer />
@@ -90,6 +91,10 @@ const App = () => {
     {
       path: "/workspace/:problemId",
       element: <Workspace />,
+    },
+    {
+      path: "/profile",
+      element: <Profile />,
     },
     {
       path: "/learning-paths",

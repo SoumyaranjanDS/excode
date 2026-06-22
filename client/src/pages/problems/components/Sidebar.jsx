@@ -117,7 +117,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         <div className="mt-auto pt-md border-t border-outline-variant/20 space-y-xs">
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
-            to="/dashboard"
+            to="/profile"
           >
             <span className="material-symbols-outlined text-xl">person</span>
             <span>Profile</span>
