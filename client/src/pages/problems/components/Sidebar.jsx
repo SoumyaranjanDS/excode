@@ -65,10 +65,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         <nav className="flex-1 space-y-sm overflow-y-auto custom-scrollbar pr-xs">
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
-            to="/dashboard"
+            to="/profile"
           >
-            <span className="material-symbols-outlined text-xl">dashboard</span>
-            <span>Dashboard</span>
+            <span className="material-symbols-outlined text-xl">person</span>
+            <span>Profile</span>
           </Link>
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
@@ -82,7 +82,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             to="/problems"
           >
             <span className="material-symbols-outlined text-xl">workspace_premium</span>
-            <span className="font-medium">Challenges</span>
+            <span className="font-medium">Problems</span>
           </Link>
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
@@ -115,13 +115,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         </nav>
         {/* Footer Links */}
         <div className="mt-auto pt-md border-t border-outline-variant/20 space-y-xs">
-          <Link
-            className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
-            to="/profile"
-          >
-            <span className="material-symbols-outlined text-xl">person</span>
-            <span>Profile</span>
-          </Link>
+
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
             to="/settings"

@@ -6,8 +6,6 @@ const NAV_ITEMS = [
   { label: "Problems", href: "/problems" },
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "Community", href: "/community" },
-  { label: "Pricing", href: "/" },
-  { label: "Blog", href: "/" },
 ];
 
 const Navbar = () => {
@@ -67,18 +65,11 @@ const Navbar = () => {
                 </p>
               </div>
               <Link
-                to="/dashboard"
-                className="block px-4 py-2 text-sm text-on-surface hover:bg-surface-container-high transition-colors"
-                onClick={() => setProfileDropdownOpen(false)}
-              >
-                Dashboard
-              </Link>
-              <Link
                 to="/profile"
                 className="block px-4 py-2 text-sm text-on-surface hover:bg-surface-container-high transition-colors"
                 onClick={() => setProfileDropdownOpen(false)}
               >
-                Profile Settings
+                Profile
               </Link>
               <button
                 onClick={handleLogout}
@@ -135,18 +126,11 @@ const Navbar = () => {
           </div>
           <div className="flex flex-col gap-2">
             <Link
-              to="/dashboard"
-              onClick={() => closeMobileMenu()}
-              className="block px-3 py-2 rounded-md text-base font-medium text-on-surface hover:bg-surface-container"
-            >
-              Dashboard
-            </Link>
-            <Link
               to="/profile"
               onClick={() => closeMobileMenu()}
               className="block px-3 py-2 rounded-md text-base font-medium text-on-surface hover:bg-surface-container"
             >
-              Profile Settings
+              Profile
             </Link>
             <button
               onClick={() => {
