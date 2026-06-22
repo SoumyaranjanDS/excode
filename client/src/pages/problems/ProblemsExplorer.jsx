@@ -10,29 +10,7 @@ const ProblemsExplorer = () => {
   const [activeTech, setActiveTech] = useState("All");
   const [activeCategory, setActiveCategory] = useState(null);
 
-  const [heatmapCells] = useState(() => {
-    const daysInMonth = 28;
-    const intensityClasses = [
-      "bg-surface-variant border border-outline-variant/10",
-      "bg-primary/30 border border-primary/20",
-      "bg-primary/60 border border-primary/40",
-      "bg-primary border border-primary/80 glow-hover",
-    ];
-
-    return Array.from({ length: daysInMonth }).map((_, i) => {
-      const rand = Math.random();
-      let intensity = 0;
-      if (rand > 0.6) intensity = 1;
-      if (rand > 0.8) intensity = 2;
-      if (rand > 0.9) intensity = 3;
-      return (
-        <div
-          key={i}
-          className={`w-full aspect-square rounded-sm ${intensityClasses[intensity]} transition-all duration-200`}
-        />
-      );
-    });
-  });
+  // Heatmap generation moved to RightSidebar component
 
   // Filtering Logic
   const filteredProblems = mockProblems.filter((p) => {
@@ -206,7 +184,7 @@ const ProblemsExplorer = () => {
         </section>
 
         {/* Right Sidebar */}
-        <RightSidebar heatmapCells={heatmapCells} />
+        <RightSidebar />
       </main>
     </div>
   );

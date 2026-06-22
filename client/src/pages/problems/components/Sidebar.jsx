@@ -21,11 +21,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         } md:translate-x-0`}
       >
         {/* Brand */}
-        <div className="flex items-center gap-sm mb-lg px-sm">
+        <Link to="/" className="flex items-center gap-sm mb-lg px-sm hover:opacity-80 transition-opacity">
           <span className="font-headline-md text-headline-md font-bold text-primary tracking-tight">
             Excode
           </span>
-        </div>
+        </Link>
         {/* User Profile Card */}
         <div className="glass-panel rounded-xl p-md mb-lg">
           <div className="flex items-center gap-sm mb-md">
@@ -65,49 +65,49 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         <nav className="flex-1 space-y-sm overflow-y-auto custom-scrollbar pr-xs">
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
-            to="#"
+            to="/dashboard"
           >
             <span className="material-symbols-outlined text-xl">dashboard</span>
             <span>Dashboard</span>
           </Link>
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
-            to="#"
+            to="/learning-paths"
           >
             <span className="material-symbols-outlined text-xl">school</span>
             <span>Learning Paths</span>
           </Link>
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-primary bg-secondary-container/20"
-            to="#"
+            to="/problems"
           >
             <span className="material-symbols-outlined text-xl">workspace_premium</span>
             <span className="font-medium">Challenges</span>
           </Link>
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
-            to="#"
+            to="/competitions"
           >
             <span className="material-symbols-outlined text-xl">emoji_events</span>
             <span>Competitions</span>
           </Link>
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
-            to="#"
+            to="/assessments"
           >
             <span className="material-symbols-outlined text-xl">assignment</span>
             <span>Assessments</span>
           </Link>
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
-            to="#"
+            to="/leaderboard"
           >
             <span className="material-symbols-outlined text-xl">leaderboard</span>
             <span>Leaderboard</span>
           </Link>
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
-            to="#"
+            to="/achievements"
           >
             <span className="material-symbols-outlined text-xl">stars</span>
             <span>Achievements</span>
@@ -117,14 +117,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         <div className="mt-auto pt-md border-t border-outline-variant/20 space-y-xs">
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
-            to="#"
+            to="/dashboard"
           >
             <span className="material-symbols-outlined text-xl">person</span>
             <span>Profile</span>
           </Link>
           <Link
             className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
-            to="#"
+            to="/settings"
           >
             <span className="material-symbols-outlined text-xl">settings</span>
             <span>Settings</span>

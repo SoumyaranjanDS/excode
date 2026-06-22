@@ -8,6 +8,7 @@ import Home from "./pages/public/Home";
 import Feature from "./pages/public/Feature";
 import Footer from "./pages/public/Footer";
 import Navbar from "./pages/public/Navbar";
+import ComingSoon from "./pages/public/ComingSoon";
 
 //auth Pages
 import Login from "./pages/auth/Login";
@@ -20,6 +21,7 @@ import Leaderboard from "./components/Leaderboard";
 import Community from "./components/Community";
 
 import { AuthProvider } from "./context/AuthContext";
+import { Agentation } from "agentation";
 
 const Layout = () => {
   const lenisRef = useRef();
@@ -38,7 +40,7 @@ const Layout = () => {
 
   return (
     <ReactLenis root ref={lenisRef} autoRaf={false} options={{ lerp: 0.1, duration: 1.2, smoothTouch: false }}>
-      <div className="flex flex-col min-h-screen w-full bg-background text-on-background">
+      <div className="flex flex-col min-h-screen w-full bg-background text-on-background relative">
         <Navbar />
         <main className="grow flex flex-col pt-24">
           <Outlet />
@@ -89,11 +91,36 @@ const App = () => {
       path: "/workspace/:problemId",
       element: <Workspace />,
     },
+    {
+      path: "/learning-paths",
+      element: <ComingSoon />,
+    },
+    {
+      path: "/competitions",
+      element: <ComingSoon />,
+    },
+    {
+      path: "/assessments",
+      element: <ComingSoon />,
+    },
+    {
+      path: "/leaderboard",
+      element: <ComingSoon />,
+    },
+    {
+      path: "/achievements",
+      element: <ComingSoon />,
+    },
+    {
+      path: "/settings",
+      element: <ComingSoon />,
+    },
   ]);
 
   return (
     <AuthProvider>
       <RouterProvider router={router} />
+      <Agentation />
     </AuthProvider>
   );
 };
