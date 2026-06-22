@@ -32,7 +32,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <img
               className="w-10 h-10 rounded-full object-cover border border-outline-variant/50"
               alt="User profile"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgIGP3kJBWkWCRd_1qtVQSDRKnCJEu9Jx6Hu-qyKQ7_1v1BRL9FkODk-3Qgs1m-ytPBzg0CtZ_BTQ7OT36VRUyZfuH9yiBuOI0NaLnoEF1dvCchH3xp9xtFkxj1661CAVrOh-yFjY03vq4ImNKJkosfwjT8aS2XPGuaewhDcdO_kWAlSxZ0x1e7hoIBJywTT7I6ZSjW2AzcL0RoBu1kRe3TNcuYw6v-o6ejZrthvu3stRES6oLALVKeTXRv9j4Ht-QhuLV80KB-FGV"
+              src={backendUser?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuAgIGP3kJBWkWCRd_1qtVQSDRKnCJEu9Jx6Hu-qyKQ7_1v1BRL9FkODk-3Qgs1m-ytPBzg0CtZ_BTQ7OT36VRUyZfuH9yiBuOI0NaLnoEF1dvCchH3xp9xtFkxj1661CAVrOh-yFjY03vq4ImNKJkosfwjT8aS2XPGuaewhDcdO_kWAlSxZ0x1e7hoIBJywTT7I6ZSjW2AzcL0RoBu1kRe3TNcuYw6v-o6ejZrthvu3stRES6oLALVKeTXRv9j4Ht-QhuLV80KB-FGV"}
             />
             <div>
               <div className="font-body-md font-semibold text-on-surface leading-tight">

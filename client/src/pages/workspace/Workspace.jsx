@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
+import { useAuth } from '../../context/AuthContext';
 
 const INITIAL_CODE = `import { db } from '../db/postgres';
 import { redis } from '../cache/redisClient';
@@ -28,6 +29,7 @@ export const registerUser = async (userData) => {
 
 const Workspace = () => {
   const { problemId } = useParams();
+  const { backendUser } = useAuth();
   // TODO: Use problemId to fetch problem data
   console.log("Workspace for problem:", problemId);
   const [code, setCode] = useState(INITIAL_CODE);
@@ -127,8 +129,21 @@ const Workspace = () => {
             <span className="material-symbols-outlined text-[20px]">settings</span>
           </button>
           <div className="w-px h-5 bg-white/10 hidden sm:block"></div>
-          <Link to="/dashboard" className="w-7 h-7 rounded-full bg-gradient-to-r from-primary to-primary-container text-[#002e6a] flex items-center justify-center font-bold text-xs hover:opacity-90 transition-opacity ml-1">
-            S
+          <Link to="/dashboard" className="flex items-center gap-2 hover:bg-white/5 p-1 rounded-lg transition-colors ml-1">
+            <img 
+              src={backendUser?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuAgIGP3kJBWkWCRd_1qtVQSDRKnCJEu9Jx6Hu-qyKQ7_1v1BRL9FkODk-3Qgs1m-ytPBzg0CtZ_BTQ7OT36VRUyZfuH9yiBuOI0NaLnoEF1dvCchH3xp9xtFkxj1661CAVrOh-yFjY03vq4ImNKJkosfwjT8aS2XPGuaewhDcdO_kWAlSxZ0x1e7hoIBJywTT7I6ZSjW2AzcL0RoBu1kRe3TNcuYw6v-o6ejZrthvu3stRES6oLALVKeTXRv9j4Ht-QhuLV80KB-FGV"} 
+              alt="profile" 
+              className="w-8 h-8 rounded-full object-cover border border-white/20"
+            />
+            <div className="hidden md:flex flex-col text-left">
+              <span className="text-xs font-semibold text-white leading-tight">
+                {backendUser?.name || "Soumyaranjan"}
+              </span>
+              <span className="text-[10px] text-amber-400 flex items-center gap-0.5 leading-none">
+                <span className="material-symbols-outlined text-[12px]">local_fire_department</span>
+                15 Day Streak
+              </span>
+            </div>
           </Link>
         </div>
       </header>
