@@ -1,19 +1,69 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import RightSidebar from "./components/RightSidebar";
 import ProblemCard from "./components/ProblemCard";
-import { mockProblems, technologies, categories } from "./mockData";
+import { technologies, categories } from "./mockData";
 
 const ProblemsExplorer = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTech, setActiveTech] = useState("All");
   const [activeCategory, setActiveCategory] = useState(null);
+  const [problems, setProblems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Heatmap generation moved to RightSidebar component
+  useEffect(() => {
+    const fetchProblems = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        let solvedIds = [];
+        if (token) {
+          try {
+            const statsRes = await fetch("http://localhost:3000/api/submissions/stats/profile", {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (statsRes.ok) {
+              const statsData = await statsRes.json();
+              solvedIds = statsData.solvedProblemIds || [];
+            }
+          } catch (e) {
+            console.error("Failed to fetch solved stats", e);
+          }
+        }
+
+        const response = await fetch("http://localhost:3000/api/problems");
+        if (!response.ok) throw new Error("Failed to fetch problems");
+        const data = await response.json();
+        
+        // Map DB fields to UI expected fields
+        const formattedProblems = data.map(dbProblem => ({
+          id: dbProblem._id,
+          title: dbProblem.title,
+          difficulty: dbProblem.level,
+          color: dbProblem.level === "Easy" ? "green" : dbProblem.level === "Medium" ? "amber" : "red",
+          technology: "MERN", // Mocking technology for now
+          category: "Full Stack", // Mocking category for now
+          description: dbProblem.description,
+          xp: dbProblem.xp || 50,
+          timeEst: dbProblem.timeEstimation || "10m",
+          successRate: null, // Removed success rate as per user request
+          status: solvedIds.includes(dbProblem._id) ? "Solved" : "Solve",
+          locked: false
+        }));
+
+        setProblems(formattedProblems);
+      } catch (error) {
+        console.error("Error fetching problems:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProblems();
+  }, []);
 
   // Filtering Logic
-  const filteredProblems = mockProblems.filter((p) => {
+  const filteredProblems = problems.filter((p) => {
     // Technology filter
     if (activeTech !== "All" && p.technology !== activeTech) return false;
     
@@ -117,10 +167,10 @@ const ProblemsExplorer = () => {
                   activeTech === "All" ? "font-medium text-primary border-b-2 border-primary" : "text-on-surface-variant hover:text-on-surface"
                 }`}
               >
-                All ({mockProblems.length})
+                All ({problems.length})
               </button>
               {technologies.map((tech) => {
-                const count = mockProblems.filter(p => p.technology === tech).length;
+                const count = problems.filter(p => p.technology === tech).length;
                 return (
                   <button
                     key={tech}
@@ -160,7 +210,11 @@ const ProblemsExplorer = () => {
 
           {/* Challenge List */}
           <div className="space-y-sm flex-1">
-            {filteredProblems.length > 0 ? (
+            {loading ? (
+              <div className="w-full py-10 flex justify-center items-center">
+                <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+              </div>
+            ) : filteredProblems.length > 0 ? (
               filteredProblems.map((problem) => (
                 <ProblemCard key={problem.id} problem={problem} />
               ))

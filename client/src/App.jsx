@@ -15,6 +15,7 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Profile from "./pages/profile/Profile";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 import ProblemsExplorer from "./pages/problems/ProblemsExplorer";
 import Workspace from "./pages/workspace/Workspace";
@@ -95,6 +96,10 @@ const App = () => {
     {
       path: "/profile",
       element: <Profile />,
+    },
+    {
+      path: "/admin",
+      element: <AdminDashboard />,
     },
     {
       path: "/learning-paths",

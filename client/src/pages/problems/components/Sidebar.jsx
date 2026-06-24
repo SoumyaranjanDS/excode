@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const { backendUser } = useAuth();
+  const location = useLocation();
 
   return (
     <>
@@ -64,49 +65,49 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         {/* Navigation Links */}
         <nav className="flex-1 space-y-sm overflow-y-auto custom-scrollbar pr-xs">
           <Link
-            className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
+            className={`flex items-center gap-md px-md py-sm rounded-lg transition-colors duration-200 ${location.pathname === '/profile' ? 'text-primary bg-secondary-container/20 font-medium' : 'text-on-surface-variant hover:bg-surface-variant/50'}`}
             to="/profile"
           >
             <span className="material-symbols-outlined text-xl">person</span>
             <span>Profile</span>
           </Link>
           <Link
-            className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
+            className={`flex items-center gap-md px-md py-sm rounded-lg transition-colors duration-200 ${location.pathname === '/learning-paths' ? 'text-primary bg-secondary-container/20 font-medium' : 'text-on-surface-variant hover:bg-surface-variant/50'}`}
             to="/learning-paths"
           >
             <span className="material-symbols-outlined text-xl">school</span>
             <span>Learning Paths</span>
           </Link>
           <Link
-            className="flex items-center gap-md px-md py-sm rounded-lg text-primary bg-secondary-container/20"
+            className={`flex items-center gap-md px-md py-sm rounded-lg transition-colors duration-200 ${location.pathname === '/problems' || location.pathname.startsWith('/workspace') ? 'text-primary bg-secondary-container/20 font-medium' : 'text-on-surface-variant hover:bg-surface-variant/50'}`}
             to="/problems"
           >
             <span className="material-symbols-outlined text-xl">workspace_premium</span>
-            <span className="font-medium">Problems</span>
+            <span>Problems</span>
           </Link>
           <Link
-            className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
+            className={`flex items-center gap-md px-md py-sm rounded-lg transition-colors duration-200 ${location.pathname === '/competitions' ? 'text-primary bg-secondary-container/20 font-medium' : 'text-on-surface-variant hover:bg-surface-variant/50'}`}
             to="/competitions"
           >
             <span className="material-symbols-outlined text-xl">emoji_events</span>
             <span>Competitions</span>
           </Link>
           <Link
-            className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
+            className={`flex items-center gap-md px-md py-sm rounded-lg transition-colors duration-200 ${location.pathname === '/assessments' ? 'text-primary bg-secondary-container/20 font-medium' : 'text-on-surface-variant hover:bg-surface-variant/50'}`}
             to="/assessments"
           >
             <span className="material-symbols-outlined text-xl">assignment</span>
             <span>Assessments</span>
           </Link>
           <Link
-            className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
+            className={`flex items-center gap-md px-md py-sm rounded-lg transition-colors duration-200 ${location.pathname === '/leaderboard' ? 'text-primary bg-secondary-container/20 font-medium' : 'text-on-surface-variant hover:bg-surface-variant/50'}`}
             to="/leaderboard"
           >
             <span className="material-symbols-outlined text-xl">leaderboard</span>
             <span>Leaderboard</span>
           </Link>
           <Link
-            className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
+            className={`flex items-center gap-md px-md py-sm rounded-lg transition-colors duration-200 ${location.pathname === '/achievements' ? 'text-primary bg-secondary-container/20 font-medium' : 'text-on-surface-variant hover:bg-surface-variant/50'}`}
             to="/achievements"
           >
             <span className="material-symbols-outlined text-xl">stars</span>
@@ -117,7 +118,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         <div className="mt-auto pt-md border-t border-outline-variant/20 space-y-xs">
 
           <Link
-            className="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-colors duration-200"
+            className={`flex items-center gap-md px-md py-sm rounded-lg transition-colors duration-200 ${location.pathname === '/settings' ? 'text-primary bg-secondary-container/20 font-medium' : 'text-on-surface-variant hover:bg-surface-variant/50'}`}
             to="/settings"
           >
             <span className="material-symbols-outlined text-xl">settings</span>

@@ -1,26 +1,136 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Sidebar from "../problems/components/Sidebar";
 import { useAuth } from "../../context/AuthContext";
 
 const Profile = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { backendUser } = useAuth();
+  
+  const [stats, setStats] = useState({
+    totalSolved: 0,
+    easySolved: 0,
+    mediumSolved: 0,
+    hardSolved: 0,
+    totalProblems: 100,
+    totalEasy: 30,
+    totalMedium: 50,
+    totalHard: 20,
+    totalXP: 0,
+    streak: 0,
+    submissionDates: []
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await fetch("http://localhost:3000/api/submissions/stats/profile", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch stats", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const userAvatar = backendUser?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuCGADYytPStVTJfvVJ7-r1HPmvChtPTBqtJ8kssRepjEFW4k8ZlEor_RDkgeRNfSnFXD4NYGE2SgZFbaUr7K04SDw6X2mmKK8OUHjLHr4aloHIBRx9uDPFPnMlt4Z89Kz1Q7tNWknfFi8ovDjbi7Ue4FYruoRXkbbLFCDdnY17F5XPCuRmulDw4A35UHDBJQfucDQbI2Znypasd6tblESxuB3oqrn5SJwaCWSG9iQxMhV46YjbJmGkWRJh7CDhDOtdIfC7lcU9lDXaj";
 
-  // Generate mock heatmap data (52 weeks, 7 days)
-  const heatmapData = useMemo(() => {
-    return Array.from({ length: 52 }, () =>
-      Array.from({ length: 7 }, () => {
-        const rand = Math.random();
-        if (rand > 0.95) return 4;
-        if (rand > 0.85) return 3;
-        if (rand > 0.7) return 2;
-        if (rand > 0.4) return 1;
-        return 0;
-      })
-    );
-  }, []);
+  // Generate dynamic heatmap data for Calendar Year
+  const { heatmapData, monthLabels } = useMemo(() => {
+    const dateCounts = {};
+    // Ensure we parse dates in local timezone
+    stats.submissionDates.forEach(dStr => {
+      // Create date from ISO string and format to YYYY-MM-DD in local time
+      const dateObj = new Date(dStr);
+      const localStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+      dateCounts[localStr] = (dateCounts[localStr] || 0) + 1;
+    });
+
+    const grid = [];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const currentYear = today.getFullYear();
+    
+    // Start of the year
+    const jan1 = new Date(currentYear, 0, 1);
+    // Find the Sunday before or exactly on Jan 1
+    const startDate = new Date(jan1);
+    startDate.setDate(jan1.getDate() - jan1.getDay());
+
+    // End of the year
+    const dec31 = new Date(currentYear, 11, 31);
+
+    let currDate = new Date(startDate);
+    const months = []; 
+    let currentMonth = -1;
+    let weeksInCurrentMonth = 0;
+
+    while (currDate <= dec31 || currDate.getDay() !== 0) {
+      if (currDate.getDay() === 0) {
+        grid.push([]);
+        
+        // Track months for labels based on the Thursday of the week
+        const thursday = new Date(currDate);
+        thursday.setDate(thursday.getDate() + 4);
+        if (thursday.getFullYear() === currentYear) {
+          const month = thursday.getMonth();
+          if (month !== currentMonth) {
+            if (currentMonth !== -1) {
+              months.push({ name: new Date(currentYear, currentMonth, 1).toLocaleString('default', { month: 'short' }), weeks: weeksInCurrentMonth });
+            }
+            currentMonth = month;
+            weeksInCurrentMonth = 1;
+          } else {
+            weeksInCurrentMonth++;
+          }
+        }
+      }
+
+      const weekArr = grid[grid.length - 1];
+      
+      // If outside the current year, it's invisible padding
+      if (currDate.getFullYear() !== currentYear) {
+        weekArr.push({ level: -1, count: 0, date: '' });
+      } 
+      // If inside the current year but in the future
+      else if (currDate > today) {
+        const dStr = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+        weekArr.push({ level: 0, count: 0, date: dStr }); // Empty dark box
+      } 
+      // Past or present valid dates
+      else {
+        const dStr = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+        const count = dateCounts[dStr] || 0;
+        let level = 0;
+        if (count > 0) level = 1;
+        if (count > 2) level = 2;
+        if (count > 4) level = 3;
+        if (count > 6) level = 4;
+        weekArr.push({ level, count, date: dStr });
+      }
+      
+      currDate.setDate(currDate.getDate() + 1);
+    }
+
+    if (currentMonth !== -1) {
+      months.push({ name: new Date(currentYear, currentMonth, 1).toLocaleString('default', { month: 'short' }), weeks: weeksInCurrentMonth });
+    }
+
+    return { heatmapData: grid, monthLabels: months };
+  }, [stats.submissionDates]);
+
+  // Calculate the SVG circle offset based on percentage of total questions solved
+  const progressPercentage = Math.min(1, stats.totalSolved / Math.max(1, stats.totalProblems));
+  const strokeDashoffset = 289 - (progressPercentage * 289);
 
   const getHeatmapColor = (level) => {
     switch (level) {
@@ -28,6 +138,7 @@ const Profile = () => {
       case 3: return "bg-[#3B82F6]/80";
       case 2: return "bg-[#3B82F6]/60";
       case 1: return "bg-[#3B82F6]/30";
+      case -1: return "opacity-0 pointer-events-none";
       case 0:
       default: return "bg-[#181c24]";
     }
@@ -96,14 +207,24 @@ const Profile = () => {
                 </div>
                 
                 <div className="w-full text-left space-y-2 text-sm font-inter text-on-surface-variant">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">location_on</span> San Francisco, CA
+                  {backendUser?.email && (
+                    <div className="flex items-center gap-2 max-w-full">
+                      <span className="material-symbols-outlined text-[18px] shrink-0">mail</span> 
+                      <div className="overflow-x-auto whitespace-nowrap custom-scrollbar pb-1">
+                        <span>{backendUser.email}</span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 max-w-full">
+                    <span className="material-symbols-outlined text-[18px] shrink-0">link</span> 
+                    <div className="overflow-x-auto whitespace-nowrap custom-scrollbar pb-1">
+                      <a className="text-primary hover:underline" href={`https://github.com/${backendUser?.name?.toLowerCase().replace(/\s/g, '') || "guest"}`} target="_blank" rel="noopener noreferrer">
+                        github.com/{backendUser?.name?.toLowerCase().replace(/\s/g, '') || "guest"}
+                      </a>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">link</span> <a className="text-primary hover:underline" href="#">{backendUser?.name?.toLowerCase().replace(/\s/g, '') || "guest"}.dev</a>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">calendar_month</span> Joined Sept 2026
+                    <span className="material-symbols-outlined text-[18px]">calendar_month</span> Joined {new Date(backendUser?.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                   </div>
                 </div>
               </div>
@@ -118,22 +239,24 @@ const Profile = () => {
                   <div>
                     <div className="flex justify-between text-sm font-inter mb-1">
                       <span className="text-on-surface-variant">Global Rank</span>
-                      <span className="text-primary font-jetbrains font-semibold drop-shadow-[0_0_10px_rgba(173,198,255,0.5)]">#4,291</span>
+                      <span className="text-primary font-jetbrains font-semibold drop-shadow-[0_0_10px_rgba(173,198,255,0.5)]">
+                        #{stats.totalSolved > 0 ? 1 : (stats.totalUsers || 1)} <span className="text-on-surface-variant text-xs font-inter ml-1">/ {stats.totalUsers || 1} users</span>
+                      </span>
                     </div>
                     <div className="h-1 bg-surface-container-highest rounded-full overflow-hidden">
-                      <div className="h-full bg-primary w-[85%] shadow-[0_0_8px_rgba(173,198,255,0.5)]"></div>
+                      <div className="h-full bg-primary shadow-[0_0_8px_rgba(173,198,255,0.5)]" style={{ width: `${stats.totalProblems > 0 ? (stats.totalSolved / stats.totalProblems) * 100 : 0}%` }}></div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 pt-2">
                     <div className="bg-surface-container p-2 rounded-lg border border-outline-variant/30 text-center">
                       <span className="block font-jetbrains text-xs uppercase tracking-wider text-on-surface-variant mb-1">Streak</span>
                       <span className="flex items-center justify-center gap-1 text-2xl font-geist font-semibold text-on-surface">
-                        <span className="material-symbols-outlined text-error text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span> 42
+                        <span className="material-symbols-outlined text-error text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span> {stats.streak}
                       </span>
                     </div>
                     <div className="bg-surface-container p-2 rounded-lg border border-outline-variant/30 text-center">
                       <span className="block font-jetbrains text-xs uppercase tracking-wider text-on-surface-variant mb-1">Total XP</span>
-                      <span className="block text-2xl font-geist font-semibold text-on-surface">14.2k</span>
+                      <span className="block text-2xl font-geist font-semibold text-on-surface">{stats.totalXP}</span>
                     </div>
                   </div>
                 </div>
@@ -151,7 +274,7 @@ const Profile = () => {
                 <div className="flex justify-between items-end mb-6">
                   <div>
                     <h2 className="text-2xl font-geist font-semibold text-on-surface tracking-tight">Activity</h2>
-                    <p className="text-on-surface-variant text-sm font-inter mt-1">842 submissions in the last year</p>
+                    <p className="text-on-surface-variant text-sm font-inter mt-1">{stats.totalSolved} problems solved in the last year</p>
                   </div>
                   <div className="hidden sm:flex items-center gap-2 text-sm font-inter text-on-surface-variant">
                     <span>Less</span>
@@ -169,9 +292,9 @@ const Profile = () => {
                   <div className="min-w-max">
                     {/* Month Labels */}
                     <div className="flex text-xs font-inter text-on-surface-variant mb-2 ml-8">
-                      {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, i) => (
-                        <div key={month} style={{ width: '65px' }}>
-                          {month}
+                      {monthLabels.map((monthObj, i) => (
+                        <div key={`${monthObj.name}-${i}`} style={{ width: `${monthObj.weeks * 15}px` }}>
+                          {monthObj.name}
                         </div>
                       ))}
                     </div>
@@ -192,11 +315,11 @@ const Profile = () => {
                       <div className="inline-flex gap-[3px]">
                         {heatmapData.map((week, wIndex) => (
                           <div key={wIndex} className="flex flex-col gap-[3px]">
-                            {week.map((level, dIndex) => (
+                            {week.map((cell, dIndex) => (
                               <div 
                                 key={`${wIndex}-${dIndex}`}
-                                className={`w-3 h-3 rounded-[2px] transition-transform hover:scale-125 cursor-pointer z-0 hover:z-10 ${getHeatmapColor(level)}`}
-                                title={`${level * 3} submissions`}
+                                className={`w-3 h-3 rounded-[2px] transition-transform ${cell.level !== -1 ? 'hover:scale-125 cursor-pointer z-0 hover:z-10' : ''} ${getHeatmapColor(cell.level)}`}
+                                title={cell.level === -1 ? '' : cell.level === 0 && cell.date > new Date().toISOString().split('T')[0] ? `Future date: ${new Date(cell.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : `${cell.count} submissions on ${cell.date ? new Date(cell.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''}`}
                               ></div>
                             ))}
                           </div>
@@ -222,30 +345,31 @@ const Profile = () => {
                       <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" fill="transparent" r="46" stroke="rgba(77, 142, 255, 0.1)" strokeWidth="8"></circle>
                         <circle 
-                          className="transition-all duration-1000" 
+                          className="transition-all duration-1000 ease-out" 
                           cx="50" cy="50" fill="transparent" r="46" stroke="#4d8eff" 
-                          strokeDasharray="289" strokeDashoffset="100" strokeWidth="8"
+                          strokeDasharray="289" strokeDashoffset={strokeDashoffset} strokeWidth="8"
                           style={{ filter: 'drop-shadow(0px 0px 4px rgba(77, 142, 255, 0.5))' }}
                         ></circle>
                       </svg>
                       <div className="text-center mt-2">
-                        <span className="block text-3xl font-geist font-bold text-on-surface leading-none mb-1">342</span>
-                        <span className="block font-jetbrains text-[10px] uppercase tracking-wider text-on-surface-variant">Solved</span>
+                        <span className="block text-3xl font-geist font-bold text-on-surface leading-none mb-1">{stats.totalSolved}</span>
+                        <span className="block font-jetbrains text-[10px] uppercase tracking-wider text-on-surface-variant mb-1">Solved</span>
+                        <span className="block text-xs font-inter text-on-surface-variant">out of {stats.totalProblems}</span>
                       </div>
                     </div>
                   </div>
                   <div className="space-y-2 mt-auto pt-4 border-t border-outline-variant/20">
                     <div className="flex justify-between items-center text-sm font-inter">
                       <span className="text-[#10B981] font-semibold">Easy</span>
-                      <span className="text-on-surface font-jetbrains">150 <span className="text-on-surface-variant text-xs ml-1">/ 300</span></span>
+                      <span className="text-on-surface font-jetbrains">{stats.easySolved} <span className="text-on-surface-variant text-xs ml-1">/ {stats.totalEasy}</span></span>
                     </div>
                     <div className="flex justify-between items-center text-sm font-inter">
                       <span className="text-[#F59E0B] font-semibold">Medium</span>
-                      <span className="text-on-surface font-jetbrains">142 <span className="text-on-surface-variant text-xs ml-1">/ 400</span></span>
+                      <span className="text-on-surface font-jetbrains">{stats.mediumSolved} <span className="text-on-surface-variant text-xs ml-1">/ {stats.totalMedium}</span></span>
                     </div>
                     <div className="flex justify-between items-center text-sm font-inter">
                       <span className="text-[#EF4444] font-semibold">Hard</span>
-                      <span className="text-on-surface font-jetbrains">50 <span className="text-on-surface-variant text-xs ml-1">/ 150</span></span>
+                      <span className="text-on-surface font-jetbrains">{stats.hardSolved} <span className="text-on-surface-variant text-xs ml-1">/ {stats.totalHard}</span></span>
                     </div>
                   </div>
                 </div>
@@ -255,10 +379,11 @@ const Profile = () => {
                   className="rounded-xl p-6 border border-white/10"
                   style={{ background: 'rgba(17, 24, 39, 0.4)', backdropFilter: 'blur(12px)' }}
                 >
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="flex justify-between items-center mb-1">
                     <h3 className="text-xl font-geist font-semibold text-on-surface">Badges</h3>
                     <a className="text-primary text-sm font-inter hover:underline" href="#">View All</a>
                   </div>
+                  <p className="text-xs text-on-surface-variant italic mb-4">* Future dynamic logic required</p>
                   <div className="grid grid-cols-2 gap-2">
                     
                     {/* Badge 1 */}

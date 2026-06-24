@@ -21,6 +21,16 @@ const ProblemCard = ({ problem }) => {
             Solve
           </button>
         );
+      case "Solved":
+        return (
+          <button
+            onClick={handleAction}
+            className="bg-green-500/20 hover:bg-green-500/30 text-green-400 font-body-sm font-medium px-sm py-xs rounded-lg transition-all ml-sm border border-green-500/30 flex items-center gap-1"
+          >
+            <span className="material-symbols-outlined text-[16px]" data-icon="check">check</span>
+            Solved
+          </button>
+        );
       case "Review":
         return (
           <button
@@ -99,7 +109,8 @@ const ProblemCard = ({ problem }) => {
   let iconContainerClass;
   let cardBorderClass;
 
-  if (problem.status === "Review") {
+  if (problem.status === "Review" || problem.status === "Solved") {
+    cardBorderClass = "border-l-2 border-l-green-500/50";
     iconContainerClass = "bg-green-500/20 border-green-500/30";
     iconContent = (
       <span

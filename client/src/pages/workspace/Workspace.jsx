@@ -30,11 +30,146 @@ export const registerUser = async (userData) => {
 const Workspace = () => {
   const { problemId } = useParams();
   const { backendUser } = useAuth();
-  // TODO: Use problemId to fetch problem data
-  console.log("Workspace for problem:", problemId);
-  const [code, setCode] = useState(INITIAL_CODE);
-  const [activeTab, setActiveTab] = useState('auth.service.js');
+  
+  const [problem, setProblem] = useState(null);
+  const [code, setCode] = useState("");
+  const [activeTab, setActiveTab] = useState('solution.js');
   const [terminalTab, setTerminalTab] = useState('Terminal');
+  const [loading, setLoading] = useState(true);
+  
+  const [terminalOutput, setTerminalOutput] = useState("dev-arena@workspace:~/challenge$ ready\n");
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submissionStats, setSubmissionStats] = useState(null);
+
+  useEffect(() => {
+    const fetchProblemAndSubmission = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        // Fetch problem
+        const response = await fetch(`http://localhost:3000/api/problems/${problemId}`);
+        if (!response.ok) throw new Error("Failed to fetch problem");
+        const data = await response.json();
+        setProblem(data);
+
+        // Fetch saved submission if token exists
+        let savedCode = null;
+        if (token) {
+          const subRes = await fetch(`http://localhost:3000/api/submissions/${problemId}`, { headers });
+          if (subRes.ok) {
+            const subData = await subRes.json();
+            if (subData.code) savedCode = subData.code;
+          }
+        }
+        
+        setCode(savedCode || data.brokenCode || "// Start coding here");
+      } catch (error) {
+        console.error("Error loading problem/submission:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (problemId) {
+      fetchProblemAndSubmission();
+    }
+  }, [problemId]);
+
+  const evaluateCode = async (isFinalSubmit = false) => {
+    if (isFinalSubmit) setIsSubmitting(true);
+    else setIsEvaluating(true);
+    
+    setTerminalTab('Terminal');
+    setTerminalOutput(`dev-arena@workspace:~/challenge$ npm run evaluate${isFinalSubmit ? ' --submit' : ''}\n> Evaluating solution...\n\n`);
+    
+    let accumulatedOutput = "";
+    let finalMetadata = null;
+
+    try {
+      const response = await fetch("http://localhost:3000/api/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ problemId, code })
+      });
+
+      if (!response.ok) throw new Error("Failed to evaluate");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.content) {
+                  accumulatedOutput += data.content;
+                  setTerminalOutput(prev => prev + data.content);
+                } else if (data.error) {
+                  setTerminalOutput(prev => prev + "\n[ERROR] " + data.error);
+                }
+              } catch(e) {}
+            }
+          }
+        }
+      }
+
+      // At the end of the stream, extract metadata from the fully assembled string
+      if (accumulatedOutput.includes('__METADATA__=')) {
+        const match = accumulatedOutput.match(/__METADATA__=(.*)/);
+        if (match && match[1]) {
+          try {
+            finalMetadata = JSON.parse(match[1].trim());
+          } catch(e) {
+            console.error("Failed to parse metadata", e);
+          }
+        }
+      }
+
+      // Handle Final Submit Saving
+      if (isFinalSubmit && finalMetadata && finalMetadata.passed) {
+        const token = localStorage.getItem('token');
+        if (token) {
+          await fetch("http://localhost:3000/api/submissions/submit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              problemId,
+              code,
+              timeComplexity: finalMetadata.timeComplexity,
+              spaceComplexity: finalMetadata.spaceComplexity,
+              status: 'PASS'
+            })
+          });
+          setSubmissionStats(finalMetadata);
+          setShowSuccessModal(true);
+        } else {
+          setTerminalOutput(prev => prev + "\n[ERROR] Must be logged in to submit.");
+        }
+      } else if (isFinalSubmit && finalMetadata && !finalMetadata.passed) {
+         setTerminalOutput(prev => prev + "\n\n[INFO] Tests failed. Fix your code before submitting.");
+      }
+
+    } catch (error) {
+      setTerminalOutput(prev => prev + "\n[ERROR] Failed to reach evaluation engine.");
+    } finally {
+      setIsEvaluating(false);
+      setIsSubmitting(false);
+    }
+  };
 
   // Custom resizing state
   const [leftWidth, setLeftWidth] = useState(320);
@@ -87,6 +222,46 @@ const Workspace = () => {
     };
   }, [isDraggingLeft, isDraggingRight, isDraggingTerminal]);
 
+  const renderTerminalOutput = () => {
+    return terminalOutput.split('\n').filter(line => !line.includes('__METADATA__=')).map((line, i) => {
+      if (!line.trim() && i !== 0) return <div key={i} className="h-2"></div>; // Spacing for empty lines
+
+      let className = "text-[#c2c6d6] leading-relaxed";
+
+      if (line.startsWith('dev-arena@workspace')) {
+        className = "text-[#8c909f] mb-2";
+      } else if (line.startsWith('>')) {
+        className = "text-[#facc15] mb-2";
+      } else if (line.includes('→ Expected:')) {
+        className = "text-green-400/80 pl-6";
+      } else if (line.includes('→ Received:')) {
+        className = "text-error/80 pl-6";
+      } else if (line.match(/^Test Suites:|^Tests:|^Time:/)) {
+        className = "text-[#8c909f] font-semibold";
+      } else if (line.startsWith('Hint:')) {
+        className = "text-primary mt-4 p-3 bg-primary/5 border border-primary/20 rounded-md";
+      } else if (line.includes('✕') || line.includes('FAIL')) {
+        className = "text-error mt-2";
+      } else if (line.includes('✓') || line.includes('PASS')) {
+        className = "text-green-400 mt-2";
+      }
+
+      // Bold specific keywords inside the line
+      const formattedLine = line
+        .replace(/FAIL/g, '<span class="text-error font-bold px-1 bg-error/10 rounded">FAIL</span>')
+        .replace(/PASS/g, '<span class="text-green-400 font-bold px-1 bg-green-500/10 rounded">PASS</span>')
+        .replace(/✕/g, '<span class="text-error font-bold">✕</span>')
+        .replace(/✓/g, '<span class="text-green-400 font-bold">✓</span>')
+        .replace(/Expected:/g, '<span class="text-green-400 font-semibold">Expected:</span>')
+        .replace(/Received:/g, '<span class="text-error font-semibold">Received:</span>')
+        .replace(/Hint:/g, '<span class="text-primary font-bold">💡 Hint:</span>');
+
+      return (
+        <div key={i} className={className} dangerouslySetInnerHTML={{ __html: formattedLine }} />
+      );
+    });
+  };
+
   const handleEditorDidMount = (editor, monaco) => {
     // Define a custom theme that matches the specific #0a0e16 background
     monaco.editor.defineTheme('ExcodeTheme', {
@@ -120,7 +295,9 @@ const Workspace = () => {
           </Link>
           <div className="w-px h-5 bg-white/10 hidden sm:block"></div>
           <div className="items-center gap-2 hidden sm:flex">
-            <span className="text-sm font-medium text-white truncate max-w-[200px] lg:max-w-[400px]">Fix Authentication Race Condition</span>
+            <span className="text-sm font-medium text-white truncate max-w-[200px] lg:max-w-[400px]">
+              {loading ? "Loading..." : problem?.title}
+            </span>
           </div>
         </div>
         
@@ -169,37 +346,31 @@ const Workspace = () => {
           </div>
           
           <div className="flex-1 overflow-y-auto p-6 scroll-hidden">
-            <div className="flex flex-wrap gap-2 mb-4">
-              <span className="px-2 py-1 bg-error/10 text-error rounded text-xs font-jetbrains uppercase border border-error/20">Expert</span>
-              <span className="px-2 py-1 bg-[#31353e] text-[#c2c6d6] rounded text-xs font-jetbrains uppercase border border-white/10">Backend</span>
-            </div>
-            <h1 className="text-2xl font-geist font-semibold text-white mb-4">Fix Authentication Race Condition</h1>
-            
-            <div className="text-sm text-[#c2c6d6] space-y-4">
-              <p>In our distributed authentication microservice, users are occasionally experiencing failed logins immediately after registering, despite the database showing successful creation.</p>
-              
-              <h3 className="text-base font-medium text-white mt-6 mb-2">The Problem</h3>
-              <p>The sequence of events during registration is:</p>
-              <ol className="list-decimal pl-4 space-y-2">
-                <li>User data is written to PostgreSQL.</li>
-                <li>A generic welcome email is queued.</li>
-                <li>An initial session token is generated and stored in Redis.</li>
-                <li>The token is returned to the client.</li>
-              </ol>
-              <p>However, under high load, step 4 sometimes completes before step 3 finishes replicating across our Redis cluster, leading to the client attempting an immediate authenticated request that gets rejected.</p>
-              
-              <h3 className="text-base font-medium text-white mt-6 mb-2">Task</h3>
-              <p>Refactor the <code>registerUser</code> function to ensure that the session token is fully propagated before returning the success response.</p>
-              
-              <div className="bg-[#1c2028] p-4 rounded-lg border border-white/10 mt-4">
-                <p className="text-xs font-jetbrains uppercase text-white mb-2">Example Test Case:</p>
-                <code className="text-xs font-jetbrains text-primary block whitespace-pre">
-{`const user = await registerUser(mockData);
-const sessionValid = await verifySession(user.token);
-assert.isTrue(sessionValid); // Failing ~5% of time`}
-                </code>
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <span className="material-symbols-outlined animate-spin text-primary">refresh</span>
               </div>
-            </div>
+            ) : problem ? (
+              <>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className={`px-2 py-1 rounded text-xs font-jetbrains uppercase border ${
+                    problem.level === 'Easy' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                    problem.level === 'Medium' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                    'bg-red-500/10 text-red-400 border-red-500/20'
+                  }`}>
+                    {problem.level}
+                  </span>
+                  <span className="px-2 py-1 bg-[#31353e] text-[#c2c6d6] rounded text-xs font-jetbrains uppercase border border-white/10">Full Stack</span>
+                </div>
+                <h1 className="text-2xl font-geist font-semibold text-white mb-4">{problem.title}</h1>
+                
+                <div className="text-sm text-[#c2c6d6] space-y-4">
+                  <div className="whitespace-pre-wrap">{problem.description}</div>
+                </div>
+              </>
+            ) : (
+              <div className="text-error">Failed to load problem.</div>
+            )}
           </div>
         </aside>
 
@@ -217,18 +388,11 @@ assert.isTrue(sessionValid); // Failing ~5% of time`}
           {/* Editor Header */}
           <div className="h-10 border-b border-white/10 bg-[#181c24] flex items-center px-2 gap-2 overflow-x-auto scroll-hidden shrink-0">
             <div 
-              onClick={() => setActiveTab('auth.service.js')}
-              className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'auth.service.js' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}
+              onClick={() => setActiveTab('solution.js')}
+              className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'solution.js' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}
             >
               <span className="material-symbols-outlined text-[#F7DF1E] text-[16px]">javascript</span>
-              <span className="text-xs font-jetbrains">auth.service.js</span>
-            </div>
-            <div 
-              onClick={() => setActiveTab('auth.test.js')}
-              className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'auth.test.js' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}
-            >
-              <span className="material-symbols-outlined text-[#8c909f] text-[16px]">description</span>
-              <span className="text-xs font-jetbrains">auth.test.js</span>
+              <span className="text-xs font-jetbrains">solution.js</span>
             </div>
           </div>
 
@@ -287,15 +451,8 @@ assert.isTrue(sessionValid); // Failing ~5% of time`}
             </div>
             
             <div className="flex-1 p-4 overflow-y-auto font-jetbrains text-xs bg-[#0a0e16] text-[#c2c6d6] scroll-hidden">
-              <div className="mb-2 text-[#8c909f]">dev-arena@workspace:~/challenge$ npm run test:watch</div>
-              <div className="text-[#facc15] mb-2">{'>'} auth-service@1.0.0 test:watch</div>
-              <div className="text-[#facc15] mb-4">{'>'} jest --watchAll --runInBand</div>
-              <div className="mb-1"><span className="text-error font-bold">FAIL</span> tests/auth.service.test.js</div>
-              <div className="pl-4 mb-2 border-l-2 border-error/50">
-                <div className="text-white">✕ should successfully verify session immediately after registration (42ms)</div>
-                <div className="text-error mt-2">  Error: Expected session to be valid, but received undefined.</div>
-                <div className="text-[#8c909f] mt-1">    at Object.{'<anonymous>'} (tests/auth.service.test.js:45:12)</div>
-              </div>
+              {renderTerminalOutput()}
+              {isEvaluating && <div className="mt-2 text-primary flex items-center gap-2"><span className="animate-pulse w-2 h-4 bg-primary inline-block"></span></div>}
             </div>
           </div>
         </div>
@@ -327,7 +484,9 @@ assert.isTrue(sessionValid); // Failing ~5% of time`}
                 <span className="material-symbols-outlined text-primary text-[18px] mt-0.5">lightbulb</span>
                 <div>
                   <h4 className="text-sm font-medium text-white">Hint 1</h4>
-                  <p className="text-sm text-[#c2c6d6] mt-1">Look at how <code>redis.setEx</code> is called. Is it returning a Promise? Are we waiting for it to resolve before returning?</p>
+                  <p className="text-sm text-[#c2c6d6] mt-1">
+                    {problem?.hints?.[0] || "No hints available for this problem yet."}
+                  </p>
                 </div>
               </div>
               <button className="text-xs font-jetbrains uppercase text-primary hover:text-primary-container transition-colors mt-2 ml-7 w-full text-left">
@@ -357,18 +516,88 @@ assert.isTrue(sessionValid); // Failing ~5% of time`}
           
           {/* Actions Bottom Bar */}
           <div className="p-4 border-t border-white/10 bg-[#181c24] flex flex-col gap-3 shrink-0">
-            <button className="w-full py-2.5 px-4 bg-[#262a33] hover:bg-[#31353e] border border-white/20 text-white rounded-lg font-medium text-sm transition-colors flex justify-center items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">play_arrow</span>
+            <button 
+              onClick={() => evaluateCode(false)}
+              disabled={isEvaluating || isSubmitting}
+              className="w-full py-2.5 px-4 bg-[#262a33] hover:bg-[#31353e] border border-white/20 text-white rounded-lg font-medium text-sm transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
+            >
+              {isEvaluating ? (
+                <span className="material-symbols-outlined animate-spin text-[18px]">refresh</span>
+              ) : (
+                <span className="material-symbols-outlined text-[18px]">play_arrow</span>
+              )}
               Run Tests
             </button>
-            <button className="w-full py-2.5 px-4 bg-primary text-[#002e6a] rounded-lg font-medium text-sm hover:bg-primary/90 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.5)] flex justify-center items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">cloud_upload</span>
-              Submit Solution
+            <button 
+              onClick={() => evaluateCode(true)}
+              disabled={isEvaluating || isSubmitting}
+              className={`w-full py-2.5 px-4 bg-primary text-[#002e6a] rounded-lg font-medium text-sm transition-all flex justify-center items-center gap-2 ${
+                isSubmitting 
+                  ? 'opacity-70 cursor-not-allowed' 
+                  : 'hover:bg-primary/90 shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.5)]'
+              }`}
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="material-symbols-outlined animate-spin text-[18px]">refresh</span>
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">cloud_upload</span>
+                  Submit Solution
+                </>
+              )}
             </button>
           </div>
         </aside>
 
       </main>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-[#181c24] border border-primary/30 rounded-2xl w-2xl overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.15)] animate-in zoom-in-95 duration-300">
+            <div className="h-32 bg-gradient-to-br from-[#0a0e16] to-primary/20 flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+              <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center mb-2 z-10 shadow-[0_0_30px_rgba(59,130,246,0.5)]">
+                <span className="material-symbols-outlined text-primary text-3xl">verified</span>
+              </div>
+            </div>
+            
+            <div className="p-6 flex flex-col items-center text-center">
+              <h2 className="text-2xl font-geist font-bold text-white mb-2">Solution Accepted!</h2>
+              <p className="text-[#c2c6d6] text-sm mb-6">You successfully passed all test cases and your solution has been saved to your profile.</p>
+              
+              <div className="w-full grid grid-cols-2 gap-3 mb-6">
+                <div className="bg-[#0f131c] border border-white/10 rounded-lg p-3 flex flex-col items-center">
+                  <span className="text-[#8c909f] text-[10px] font-jetbrains uppercase tracking-wider mb-1">Time Complexity</span>
+                  <span className="text-primary font-jetbrains font-semibold">{submissionStats?.timeComplexity || 'O(N)'}</span>
+                </div>
+                <div className="bg-[#0f131c] border border-white/10 rounded-lg p-3 flex flex-col items-center">
+                  <span className="text-[#8c909f] text-[10px] font-jetbrains uppercase tracking-wider mb-1">Space Complexity</span>
+                  <span className="text-green-400 font-jetbrains font-semibold">{submissionStats?.spaceComplexity || 'O(1)'}</span>
+                </div>
+              </div>
+
+              <div className="w-full flex gap-3">
+                <button 
+                  onClick={() => setShowSuccessModal(false)}
+                  className="flex-1 py-2.5 bg-[#262a33] hover:bg-[#31353e] text-white rounded-lg font-medium text-sm transition-colors"
+                >
+                  Close
+                </button>
+                <Link 
+                  to="/problems"
+                  className="flex-1 py-2.5 bg-primary text-[#002e6a] rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors"
+                >
+                  Next Problem
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

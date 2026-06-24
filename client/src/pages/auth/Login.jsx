@@ -72,7 +72,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex w-full min-h-screen overflow-hidden">
+    <div className="flex w-full min-h-screen">
       {/* Left Side: Branding & Quote */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-surface-container-lowest flex-col justify-between p-8 overflow-hidden">
         {/* Background Image */}
@@ -98,7 +98,7 @@ const Login = () => {
           </div>
           {/* Quote Box */}
           <div
-            className="p-6 rounded-2xl max-w-lg mb-8"
+            className="p-6 rounded-2xl mb-8"
             style={{
               background: "rgba(17, 24, 39, 0.7)",
               backdropFilter: "blur(12px)",
@@ -133,7 +133,7 @@ const Login = () => {
 
       {/* Right Side: Log In Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-8 bg-background relative z-10">
-        <div className="w-full max-w-md">
+        <div>
           {/* Mobile Logo */}
           <div className="flex lg:hidden justify-center mb-8">
             <Link className="flex items-center gap-2" to="/">
