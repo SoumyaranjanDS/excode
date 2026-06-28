@@ -15,6 +15,7 @@ const ProblemsExplorer = () => {
   const [activeCategory, setActiveCategory] = useState(null);
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submissionDates, setSubmissionDates] = useState([]);
 
   useEffect(() => {
     const fetchProblems = async () => {
@@ -29,6 +30,7 @@ const ProblemsExplorer = () => {
             if (statsRes.ok) {
               const statsData = await statsRes.json();
               solvedIds = statsData.solvedProblemIds || [];
+              setSubmissionDates(statsData.submissionDates || []);
             } else if (statsRes.status === 401) {
               await logout();
               navigate('/login');
@@ -49,8 +51,8 @@ const ProblemsExplorer = () => {
           title: dbProblem.title,
           difficulty: dbProblem.level,
           color: dbProblem.level === "Easy" ? "green" : dbProblem.level === "Medium" ? "amber" : "red",
-          technology: "MERN", // Mocking technology for now
-          category: "Full Stack", // Mocking category for now
+          technology: dbProblem.type || "MERN",
+          category: dbProblem.type === "HTML" || dbProblem.type === "CSS" ? "Frontend" : "Full Stack",
           description: dbProblem.description,
           xp: dbProblem.xp || 50,
           timeEst: dbProblem.timeEstimation || "10m",
@@ -246,7 +248,7 @@ const ProblemsExplorer = () => {
         </section>
 
         {/* Right Sidebar */}
-        <RightSidebar />
+        <RightSidebar submissionDates={submissionDates} />
       </main>
     </div>
   );

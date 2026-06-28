@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 
-const RightSidebar = () => {
+const RightSidebar = ({ submissionDates = [] }) => {
   // Generate current month calendar logic
   const { currentMonth, currentYear, calendarCells } = useMemo(() => {
     const today = new Date();
@@ -13,6 +13,14 @@ const RightSidebar = () => {
     // Get the day of the week the month starts on (0 = Sunday, 1 = Monday, etc.)
     const startDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
 
+    // Map submissionDates to local date strings
+    const activeDates = new Set();
+    submissionDates.forEach(dateStr => {
+      const d = new Date(dateStr);
+      // Ensure we compare local dates properly
+      activeDates.add(`${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`);
+    });
+
     const cells = [];
     
     // Add empty padding cells for the start of the month
@@ -23,8 +31,8 @@ const RightSidebar = () => {
     // Add the actual days of the month
     for (let i = 1; i <= daysInMonth; i++) {
       const isPastOrToday = i <= today.getDate();
-      // Randomly decide if this day has a submission (e.g. 70% chance)
-      const hasSubmission = isPastOrToday ? Math.random() > 0.3 : false;
+      const dateKey = `${currentYear}-${today.getMonth() + 1}-${i}`;
+      const hasSubmission = activeDates.has(dateKey);
       
       cells.push({ 
         type: 'day', 
@@ -37,7 +45,7 @@ const RightSidebar = () => {
     }
 
     return { currentMonth, currentYear, calendarCells: cells };
-  }, []);
+  }, [submissionDates]);
   return (
     <aside className="w-full xl:w-80 h-auto xl:h-full overflow-y-auto custom-scrollbar border-t xl:border-t-0 xl:border-l border-outline-variant/30 bg-surface-container-lowest p-md lg:p-lg flex flex-col gap-lg z-20">
       

@@ -3,7 +3,7 @@ import { Problem } from "../models/problem.model.js";
 export const getProblems = async (req, res) => {
   try {
     const problems = await Problem.find()
-      .select("title level description xp timeEstimation isPublished createdAt")
+      .select("title level description type xp timeEstimation isPublished createdAt")
       .sort({ createdAt: -1 });
 
     res.status(200).json(problems);

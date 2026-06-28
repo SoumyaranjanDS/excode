@@ -112,6 +112,12 @@ const Workspace = () => {
     }
   }, [problemId]);
 
+  useEffect(() => {
+    if (!loading && problemId && code) {
+      localStorage.setItem(`draft_${problemId}`, JSON.stringify(code));
+    }
+  }, [code, problemId, loading]);
+
   const evaluateCode = async (isFinalSubmit = false) => {
     if (isFinalSubmit) setIsSubmitting(true);
     else setIsEvaluating(true);
@@ -300,8 +306,8 @@ const Workspace = () => {
     });
   };
 
-  const handleEditorDidMount = (editor, monaco) => {
-    // Define a custom theme that matches the specific #0a0e16 background
+  const handleEditorBeforeMount = (monaco) => {
+    // Define a custom theme that matches the specific #262626 background
     monaco.editor.defineTheme('ExcodeTheme', {
       base: 'vs-dark',
       inherit: true,
@@ -312,13 +318,15 @@ const Workspace = () => {
         { token: 'identifier', foreground: 'adc6ff' }
       ],
       colors: {
-        'editor.background': '#0a0e16',
-        'editor.lineHighlightBackground': '#181c24',
+        'editor.background': '#262626',
+        'editor.lineHighlightBackground': '#333333',
         'editorLineNumber.foreground': '#424754',
-        'editorIndentGuide.background': '#1c2028',
+        'editorIndentGuide.background': '#333333',
       }
     });
-    monaco.editor.setTheme('ExcodeTheme');
+  };
+
+  const handleEditorDidMount = (editor, monaco) => {
 
     // Force Monaco to recalculate character widths once web fonts are fully loaded
     document.fonts.ready.then(() => {
@@ -327,10 +335,10 @@ const Workspace = () => {
   };
 
   return (
-    <div className="bg-[#0f131c] text-[#dfe2ee] h-screen flex flex-col overflow-hidden font-inter">
+    <div className="bg-[#262626] text-[#dfe2ee] h-screen flex flex-col overflow-hidden font-inter">
       
       {/* Workspace Top Navigation */}
-      <header className="h-12 border-b border-white/10 bg-[#181c24] flex items-center justify-between px-4 shrink-0 z-20 shadow-sm shadow-black/20">
+      <header className="h-12 border-b border-white/10 bg-[#333333] flex items-center justify-between px-4 shrink-0 z-20 shadow-sm shadow-black/20">
         <div className="flex items-center gap-4">
           <Link to="/problems" className="flex items-center gap-2 text-[#c2c6d6] hover:text-white transition-colors group">
             <span className="material-symbols-outlined text-[20px] group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
@@ -374,9 +382,9 @@ const Workspace = () => {
         {/* Left Panel: Problem Description */}
         <aside 
           style={{ width: `${leftWidth}px` }}
-          className="flex flex-col bg-[#0f131c] border-b lg:border-b-0 shrink-0 relative"
+          className="flex flex-col bg-[#262626] border-b lg:border-b-0 shrink-0 relative"
         >
-          <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#181c24] shrink-0">
+          <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#333333] shrink-0">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-[20px]">description</span>
               <span className="text-xs font-jetbrains uppercase tracking-wider font-semibold">Description</span>
@@ -403,12 +411,12 @@ const Workspace = () => {
                   }`}>
                     {problem.level}
                   </span>
-                  <span className="px-2 py-1 bg-[#31353e] text-[#c2c6d6] rounded text-xs font-jetbrains uppercase border border-white/10">Full Stack</span>
+                  <span className="px-2 py-1 bg-[#404040] text-[#c2c6d6] rounded text-xs font-jetbrains uppercase border border-white/10">Full Stack</span>
                 </div>
                 <h1 className="text-2xl font-geist font-semibold text-white mb-4">{problem.title}</h1>
                 
                 <div className="text-sm text-[#c2c6d6] space-y-4">
-                  <div className="prose prose-invert max-w-none prose-pre:bg-[#181c24] prose-pre:border-white/10 prose-pre:border">
+                  <div className="prose prose-invert max-w-none prose-pre:bg-[#333333] prose-pre:border-white/10 prose-pre:border">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {problem.description}
                     </ReactMarkdown>
@@ -430,30 +438,30 @@ const Workspace = () => {
         </div>
 
         {/* Center Panel: Editor & Terminal */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[#0a0e16]">
+        <div className="flex-1 flex flex-col min-w-0 bg-[#262626]">
           
           {/* Editor Header */}
-          <div className="h-10 border-b border-white/10 bg-[#181c24] flex items-center px-2 gap-2 overflow-x-auto scroll-hidden shrink-0">
+          <div className="h-10 border-b border-white/10 bg-[#333333] flex items-center px-2 gap-2 overflow-x-auto scroll-hidden shrink-0">
             {problem && ['HTML', 'MIX'].includes(problem.type) && (
-              <div onClick={() => setActiveTab('index.html')} className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'index.html' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}>
+              <div onClick={() => setActiveTab('index.html')} className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'index.html' ? 'bg-[#262626] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#404040] rounded'}`}>
                 <span className="text-xs font-jetbrains text-orange-400">html</span>
                 <span className="text-xs font-jetbrains">index.html</span>
               </div>
             )}
             {problem && ['CSS', 'MIX'].includes(problem.type) && (
-              <div onClick={() => setActiveTab('styles.css')} className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'styles.css' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}>
+              <div onClick={() => setActiveTab('styles.css')} className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'styles.css' ? 'bg-[#262626] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#404040] rounded'}`}>
                 <span className="text-xs font-jetbrains text-blue-400">css</span>
                 <span className="text-xs font-jetbrains">styles.css</span>
               </div>
             )}
             {problem && ['JS', 'MIX'].includes(problem.type) && (
-              <div onClick={() => setActiveTab('script.js')} className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'script.js' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}>
+              <div onClick={() => setActiveTab('script.js')} className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'script.js' ? 'bg-[#262626] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#404040] rounded'}`}>
                 <span className="text-xs font-jetbrains text-yellow-400">js</span>
                 <span className="text-xs font-jetbrains">script.js</span>
               </div>
             )}
             {(!problem || problem.type === 'REACT') && (
-              <div onClick={() => setActiveTab('App.jsx')} className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'App.jsx' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}>
+              <div onClick={() => setActiveTab('App.jsx')} className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'App.jsx' ? 'bg-[#262626] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#404040] rounded'}`}>
                 <span className="text-xs font-jetbrains text-cyan-400">jsx</span>
                 <span className="text-xs font-jetbrains">App.jsx</span>
               </div>
@@ -474,7 +482,9 @@ const Workspace = () => {
                 else newCode.react = value;
                 setCode(newCode);
               }}
+              beforeMount={handleEditorBeforeMount}
               onMount={handleEditorDidMount}
+              theme="ExcodeTheme"
               options={{
                 fontFamily: 'JetBrains Mono',
                 fontSize: 14,
@@ -489,7 +499,8 @@ const Workspace = () => {
                 renderLineHighlight: "all",
                 hideCursorInOverviewRuler: true,
                 overviewRulerBorder: false,
-                automaticLayout: true
+                automaticLayout: true,
+                wordWrap: "on"
               }}
             />
           </div>
@@ -505,11 +516,11 @@ const Workspace = () => {
           {/* Terminal Section */}
           <div 
             style={{ height: `${terminalHeight}px` }}
-            className="bg-[#0f131c] flex flex-col shrink-0"
+            className="bg-[#262626] flex flex-col shrink-0"
           >
-            <div className="flex items-center justify-between px-4 border-b border-white/10 bg-[#181c24] h-10 shrink-0">
+            <div className="flex items-center justify-between px-4 border-b border-white/10 bg-[#333333] h-10 shrink-0">
               <div className="flex items-center gap-4 h-full">
-                {['Terminal', 'Test Results', 'Console', 'Web Preview'].map(tab => (
+                {['Terminal', 'Web Preview'].map(tab => (
                   <button 
                     key={tab}
                     onClick={() => setTerminalTab(tab)}
@@ -521,12 +532,12 @@ const Workspace = () => {
               </div>
             </div>
             
-            <div className="flex-1 overflow-y-auto font-jetbrains text-xs bg-[#0a0e16] text-[#c2c6d6] scroll-hidden">
+            <div className="flex-1 overflow-y-auto font-jetbrains text-xs bg-[#262626] text-[#c2c6d6] scroll-hidden">
               {terminalTab === 'Web Preview' ? (
                 <iframe 
                   title="Web Preview"
                   sandbox="allow-scripts allow-modals"
-                  srcDoc={`<!DOCTYPE html><html><head><style>${problem?.hiddenCode?.css || ''}\n${code?.css || ''}</style></head><body>${code?.html || ''}<script>${problem?.hiddenCode?.js || ''}\n${code?.js || ''}</script></body></html>`}
+                  srcDoc={`<!DOCTYPE html><html><head><style>${problem?.hiddenCode?.css || ''}\n${code?.css || ''}</style></head><body>${problem?.hiddenCode?.html || ''}\n${code?.html || ''}<script>${problem?.hiddenCode?.js || ''}\n${code?.js || ''}</script></body></html>`}
                   className="w-full h-full border-none bg-white"
                 />
               ) : (
@@ -550,9 +561,9 @@ const Workspace = () => {
         {/* Right Panel: AI & Actions */}
         <aside 
           style={{ width: `${rightWidth}px` }}
-          className="flex flex-col bg-[#0f131c] border-t lg:border-t-0 shrink-0 relative"
+          className="flex flex-col bg-[#262626] border-t lg:border-t-0 shrink-0 relative"
         >
-          <div className="p-3 border-b border-white/10 bg-[#181c24] flex justify-between items-center h-10 shrink-0">
+          <div className="p-3 border-b border-white/10 bg-[#333333] flex justify-between items-center h-10 shrink-0">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[#bdc7d9] text-[20px]">smart_toy</span>
               <span className="text-xs font-jetbrains uppercase font-semibold text-white">Arena AI</span>
@@ -561,7 +572,7 @@ const Workspace = () => {
           
           <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
             {/* AI Hint Card */}
-            <div className="bg-[#262a33] rounded-lg border border-white/10 p-4">
+            <div className="bg-[#404040] rounded-lg border border-white/10 p-4">
               <div className="flex items-start gap-2 mb-2">
                 <span className="material-symbols-outlined text-primary text-[18px] mt-0.5">lightbulb</span>
                 <div>
@@ -577,7 +588,7 @@ const Workspace = () => {
             </div>
 
             {/* Resources */}
-            <div className="bg-[#1c2028] rounded-lg border border-white/10 p-4 mt-auto">
+            <div className="bg-[#333333] rounded-lg border border-white/10 p-4 mt-auto">
               <h4 className="text-xs font-jetbrains uppercase text-white mb-2">Resources</h4>
               <ul className="space-y-2 text-sm">
                 <li>
@@ -597,11 +608,11 @@ const Workspace = () => {
           </div>
           
           {/* Actions Bottom Bar */}
-          <div className="p-4 border-t border-white/10 bg-[#181c24] flex flex-col gap-3 shrink-0">
+          <div className="p-4 border-t border-white/10 bg-[#333333] flex flex-col gap-3 shrink-0">
             <button 
               onClick={() => evaluateCode(false)}
               disabled={isEvaluating || isSubmitting}
-              className="w-full py-2.5 px-4 bg-[#262a33] hover:bg-[#31353e] border border-white/20 text-white rounded-lg font-medium text-sm transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
+              className="w-full py-2.5 px-4 bg-[#404040] hover:bg-[#404040] border border-white/20 text-white rounded-lg font-medium text-sm transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
             >
               {isEvaluating ? (
                 <span className="material-symbols-outlined animate-spin text-[18px]">refresh</span>
@@ -639,8 +650,8 @@ const Workspace = () => {
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-[#181c24] border border-primary/30 rounded-2xl w-2xl overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.15)] animate-in zoom-in-95 duration-300">
-            <div className="h-32 bg-gradient-to-br from-[#0a0e16] to-primary/20 flex flex-col items-center justify-center relative overflow-hidden">
+          <div className="bg-[#333333] border border-primary/30 rounded-2xl w-2xl overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.15)] animate-in zoom-in-95 duration-300">
+            <div className="h-32 bg-gradient-to-br from-[#262626] to-primary/20 flex flex-col items-center justify-center relative overflow-hidden">
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
               <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center mb-2 z-10 shadow-[0_0_30px_rgba(59,130,246,0.5)]">
                 <span className="material-symbols-outlined text-primary text-3xl">verified</span>
@@ -651,21 +662,29 @@ const Workspace = () => {
               <h2 className="text-2xl font-geist font-bold text-white mb-2">Solution Accepted!</h2>
               <p className="text-[#c2c6d6] text-sm mb-6">You successfully passed all test cases and your solution has been saved to your profile.</p>
               
-              <div className="w-full grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-[#0f131c] border border-white/10 rounded-lg p-3 flex flex-col items-center">
-                  <span className="text-[#8c909f] text-[10px] font-jetbrains uppercase tracking-wider mb-1">Time Complexity</span>
-                  <span className="text-primary font-jetbrains font-semibold">{submissionStats?.timeComplexity || 'O(N)'}</span>
+              {problem?.type === 'HTML' || problem?.type === 'CSS' ? (
+                <div className="w-full bg-[#262626] border border-white/10 rounded-lg p-4 mb-6 flex flex-col items-center justify-center">
+                  <span className="text-2xl mb-2">🎨</span>
+                  <span className="text-primary font-jetbrains font-semibold">Pixel Perfect!</span>
+                  <span className="text-[#8c909f] text-xs text-center mt-1">Your implementation successfully met all design and structural requirements.</span>
                 </div>
-                <div className="bg-[#0f131c] border border-white/10 rounded-lg p-3 flex flex-col items-center">
-                  <span className="text-[#8c909f] text-[10px] font-jetbrains uppercase tracking-wider mb-1">Space Complexity</span>
-                  <span className="text-green-400 font-jetbrains font-semibold">{submissionStats?.spaceComplexity || 'O(1)'}</span>
+              ) : (
+                <div className="w-full grid grid-cols-2 gap-3 mb-6">
+                  <div className="bg-[#262626] border border-white/10 rounded-lg p-3 flex flex-col items-center">
+                    <span className="text-[#8c909f] text-[10px] font-jetbrains uppercase tracking-wider mb-1">Time Complexity</span>
+                    <span className="text-primary font-jetbrains font-semibold">{submissionStats?.timeComplexity || 'O(N)'}</span>
+                  </div>
+                  <div className="bg-[#262626] border border-white/10 rounded-lg p-3 flex flex-col items-center">
+                    <span className="text-[#8c909f] text-[10px] font-jetbrains uppercase tracking-wider mb-1">Space Complexity</span>
+                    <span className="text-green-400 font-jetbrains font-semibold">{submissionStats?.spaceComplexity || 'O(1)'}</span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="w-full flex gap-3">
                 <button 
                   onClick={() => setShowSuccessModal(false)}
-                  className="flex-1 py-2.5 bg-[#262a33] hover:bg-[#31353e] text-white rounded-lg font-medium text-sm transition-colors"
+                  className="flex-1 py-2.5 bg-[#404040] hover:bg-[#404040] text-white rounded-lg font-medium text-sm transition-colors"
                 >
                   Close
                 </button>

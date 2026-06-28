@@ -29,6 +29,7 @@ const problemSchema = mongoose.Schema({
     react: { type: String, default: "" }
   },
   hiddenCode: {
+    html: { type: String, default: "" },
     css: { type: String, default: "" },
     js: { type: String, default: "" }
   },
