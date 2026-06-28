@@ -164,3 +164,107 @@ export const getProfileStats = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch profile stats." });
   }
 };
+
+export const getPublicProfileStats = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const user = await User.findOne({ username: username.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userId = user._id;
+
+    // Fetch all submissions for the user that passed
+    const submissions = await Submission.find({ userId, status: 'PASS' }).populate('problemId', 'level xp');
+
+    let totalXP = 0;
+    let easySolved = 0;
+    let mediumSolved = 0;
+    let hardSolved = 0;
+    const submissionDates = [];
+    const activeDates = new Set();
+    const solvedProblemIds = [];
+
+    submissions.forEach(sub => {
+      if (sub.problemId) {
+        solvedProblemIds.push(sub.problemId._id);
+        totalXP += sub.problemId.xp || 0;
+        if (sub.problemId.level === 'Easy') easySolved++;
+        else if (sub.problemId.level === 'Medium') mediumSolved++;
+        else if (sub.problemId.level === 'Hard') hardSolved++;
+      }
+
+      if (sub.firstPassedAt) {
+        submissionDates.push(sub.firstPassedAt);
+        const dateStr = new Date(sub.firstPassedAt).toISOString().split('T')[0];
+        activeDates.add(dateStr);
+      } else if (sub.updatedAt) {
+        submissionDates.push(sub.updatedAt);
+        const dateStr = new Date(sub.updatedAt).toISOString().split('T')[0];
+        activeDates.add(dateStr);
+      }
+    });
+
+    const totalSolved = solvedProblemIds.length;
+    const sortedDates = Array.from(activeDates).sort((a, b) => new Date(b) - new Date(a));
+    let streak = 0;
+
+    if (sortedDates.length > 0) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const lastActiveDate = new Date(sortedDates[0]);
+      lastActiveDate.setHours(0, 0, 0, 0);
+      const diffTime = Math.abs(today - lastActiveDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+      
+      if (diffDays <= 1) {
+        streak = 1;
+        let currentDate = lastActiveDate;
+        for (let i = 1; i < sortedDates.length; i++) {
+          const nextDate = new Date(sortedDates[i]);
+          nextDate.setHours(0, 0, 0, 0);
+          const diff = Math.ceil(Math.abs(currentDate - nextDate) / (1000 * 60 * 60 * 24));
+          if (diff === 1) {
+            streak++;
+            currentDate = nextDate;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
+    const totalEasy = await Problem.countDocuments({ level: 'Easy' });
+    const totalMedium = await Problem.countDocuments({ level: 'Medium' });
+    const totalHard = await Problem.countDocuments({ level: 'Hard' });
+    const totalProblems = totalEasy + totalMedium + totalHard;
+    const totalUsers = await User.countDocuments();
+
+    res.status(200).json({
+      user: {
+        name: user.name,
+        username: user.username,
+        avatar: user.avatar,
+        createdAt: user.createdAt
+      },
+      totalSolved,
+      easySolved,
+      mediumSolved,
+      hardSolved,
+      totalProblems,
+      totalEasy,
+      totalMedium,
+      totalHard,
+      totalXP,
+      streak,
+      submissionDates,
+      totalUsers,
+      solvedProblemIds
+    });
+
+  } catch (error) {
+    console.error("Get public profile stats error:", error);
+    res.status(500).json({ message: "Failed to fetch public profile stats." });
+  }
+};

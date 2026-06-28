@@ -1,10 +1,23 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import ShareProfileModal from "./components/ShareProfileModal";
+import ClaimUsernameModal from "./components/ClaimUsernameModal";
 import Sidebar from "../problems/components/Sidebar";
 import { useAuth } from "../../context/AuthContext";
 
 const Profile = () => {
+  const { username } = useParams();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { backendUser } = useAuth();
+  const { backendUser, setBackendUser, logout } = useAuth();
+  const navigate = useNavigate();
+  
+  const isPublicView = !!username;
+  const isOwnProfile = !isPublicView || (backendUser && backendUser.username === username);
+
+  const [profileUser, setProfileUser] = useState(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [claimModalOpen, setClaimModalOpen] = useState(false);
+
   
   const [stats, setStats] = useState({
     totalSolved: 0,
@@ -24,14 +37,33 @@ const Profile = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-        const res = await fetch("http://localhost:3000/api/submissions/stats/profile", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setStats(data);
+        if (isPublicView && !isOwnProfile) {
+          const res = await fetch(`http://localhost:3000/api/submissions/stats/public/${username}`);
+          if (res.ok) {
+            const data = await res.json();
+            setStats(data);
+            setProfileUser(data.user);
+          } else {
+            navigate('/profile'); // Redirect if not found
+          }
+        } else {
+          const token = localStorage.getItem('token');
+          if (!token) {
+             navigate('/login');
+             return;
+          }
+          const res = await fetch("http://localhost:3000/api/submissions/stats/profile", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setStats(data);
+            setProfileUser(backendUser);
+          } else if (res.status === 401) {
+            await logout();
+            navigate('/login');
+            return;
+          }
         }
       } catch (error) {
         console.error("Failed to fetch stats", error);
@@ -40,9 +72,9 @@ const Profile = () => {
       }
     };
     fetchStats();
-  }, []);
+  }, [username, isOwnProfile, backendUser, navigate, isPublicView, logout]);
 
-  const userAvatar = backendUser?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuCGADYytPStVTJfvVJ7-r1HPmvChtPTBqtJ8kssRepjEFW4k8ZlEor_RDkgeRNfSnFXD4NYGE2SgZFbaUr7K04SDw6X2mmKK8OUHjLHr4aloHIBRx9uDPFPnMlt4Z89Kz1Q7tNWknfFi8ovDjbi7Ue4FYruoRXkbbLFCDdnY17F5XPCuRmulDw4A35UHDBJQfucDQbI2Znypasd6tblESxuB3oqrn5SJwaCWSG9iQxMhV46YjbJmGkWRJh7CDhDOtdIfC7lcU9lDXaj";
+  const userAvatar = profileUser?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuCGADYytPStVTJfvVJ7-r1HPmvChtPTBqtJ8kssRepjEFW4k8ZlEor_RDkgeRNfSnFXD4NYGE2SgZFbaUr7K04SDw6X2mmKK8OUHjLHr4aloHIBRx9uDPFPnMlt4Z89Kz1Q7tNWknfFi8ovDjbi7Ue4FYruoRXkbbLFCDdnY17F5XPCuRmulDw4A35UHDBJQfucDQbI2Znypasd6tblESxuB3oqrn5SJwaCWSG9iQxMhV46YjbJmGkWRJh7CDhDOtdIfC7lcU9lDXaj";
 
   // Generate dynamic heatmap data for Calendar Year
   const { heatmapData, monthLabels } = useMemo(() => {
@@ -191,23 +223,34 @@ const Profile = () => {
                     99
                   </div>
                 </div>
-                <h1 className="text-2xl font-geist font-semibold text-on-surface">{backendUser?.name || "Guest Developer"}</h1>
-                <p className="text-on-surface-variant text-sm font-inter mb-4">@{backendUser?.name?.toLowerCase().replace(/\s/g, '_') || "guest_dev"}</p>
+                <h1 className="text-2xl font-geist font-semibold text-on-surface">{profileUser?.name || "Developer"}</h1>
+                <p className="text-on-surface-variant text-sm font-inter mb-4">@{profileUser?.username || profileUser?.name?.toLowerCase().replace(/\s/g, '_')}</p>
                 <div className="inline-block bg-primary-container/10 text-primary px-2 py-1 rounded-full font-jetbrains text-xs uppercase tracking-wider border border-primary/20 mb-6">
                   Staff Engineer
                 </div>
                 
                 <div className="w-full flex gap-2 mb-6">
-                  <button className="flex-1 bg-primary text-on-primary px-4 py-2 rounded-lg hover:shadow-[0_0_15px_rgba(77,142,255,0.3)] hover:-translate-y-0.5 transition-all text-sm font-inter font-semibold">
-                    Follow
-                  </button>
-                  <button className="px-4 py-2 rounded-lg border border-outline-variant hover:border-primary transition-colors flex items-center justify-center">
-                    <span className="material-symbols-outlined text-on-surface-variant">mail</span>
-                  </button>
+                  {isOwnProfile ? (
+                    <button 
+                      onClick={() => backendUser?.username ? setShareModalOpen(true) : setClaimModalOpen(true)}
+                      className="flex-1 bg-primary text-on-primary px-4 py-2 rounded-lg hover:shadow-[0_0_15px_rgba(77,142,255,0.3)] hover:-translate-y-0.5 transition-all text-sm font-inter font-semibold flex items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-sm">share</span>
+                      {backendUser?.username ? "Share Profile" : "Claim Username"}
+                    </button>
+                  ) : (
+                    <>
+                      <button className="flex-1 bg-primary text-on-primary px-4 py-2 rounded-lg hover:shadow-[0_0_15px_rgba(77,142,255,0.3)] hover:-translate-y-0.5 transition-all text-sm font-inter font-semibold">
+                        Follow
+                      </button>
+                      <button className="px-4 py-2 rounded-lg border border-outline-variant hover:border-primary transition-colors flex items-center justify-center">
+                        <span className="material-symbols-outlined text-on-surface-variant">mail</span>
+                      </button>
+                    </>
+                  )}
                 </div>
                 
                 <div className="w-full text-left space-y-2 text-sm font-inter text-on-surface-variant">
-                  {backendUser?.email && (
+                  {!isPublicView && backendUser?.email && (
                     <div className="flex items-center gap-2 max-w-full">
                       <span className="material-symbols-outlined text-[18px] shrink-0">mail</span> 
                       <div className="overflow-x-auto whitespace-nowrap custom-scrollbar pb-1">
@@ -224,7 +267,7 @@ const Profile = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">calendar_month</span> Joined {new Date(backendUser?.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                    <span className="material-symbols-outlined text-[18px]">calendar_month</span> Joined {new Date(profileUser?.createdAt || "2023-01-01").toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                   </div>
                 </div>
               </div>
@@ -426,6 +469,9 @@ const Profile = () => {
           </div>
         </section>
       </main>
+
+      {shareModalOpen && <ShareProfileModal username={backendUser?.username} onClose={() => setShareModalOpen(false)} />}
+      {claimModalOpen && <ClaimUsernameModal backendUser={backendUser} setBackendUser={setBackendUser} onClose={() => setClaimModalOpen(false)} />}
     </div>
   );
 };

@@ -12,7 +12,7 @@ const submissionSchema = new mongoose.Schema({
     required: true
   },
   code: {
-    type: String,
+    type: mongoose.Schema.Types.Mixed,
     required: true
   },
   timeComplexity: {

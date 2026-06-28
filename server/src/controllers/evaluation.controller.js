@@ -32,24 +32,25 @@ export const evaluateCode = async (req, res) => {
     const prompt = `
 You are a CLI test runner (like Jest or Mocha) for a coding platform. 
 A user has submitted code for a problem. 
-Your ONLY job is to read their code, evaluate it against the strict grading rubric, and output the result EXACTLY like a modern terminal test runner.
+Your ONLY job is to read their code (which is provided as a JSON object containing html, css, js, and react fields), evaluate it against the strict grading rubric, and output the result EXACTLY like a modern terminal test runner.
 
 Problem Context:
 Title: ${problem.title}
 Secret Evaluation Rubric: ${problem.instructionPrompt}
 
 User's Code Submission:
-\`\`\`javascript
-${code}
+\`\`\`json
+${typeof code === 'object' ? JSON.stringify(code, null, 2) : code}
 \`\`\`
 
 Strict Output Rules:
 1. DO NOT write paragraphs of explanation or markdown headers.
 2. DO NOT greet the user or say "Here is the output".
 3. Format the output exactly like Jest. Use \`✓\` for passing tests and \`✕\` for failing tests.
-4. If a test fails, provide ONE concise line explaining Expected vs Received.
-5. At the bottom, provide a single "Test Suites" summary and ONE short hint (max 2 sentences) if they failed.
-6. If they pass all requirements, output a green-style passing summary.
+4. If a test fails, provide ONE concise line clearly explaining WHAT was missing or incorrect (e.g., 'Missing class .profile-role on <p> tag'). Do NOT just repeat 'Expected X, Received X'.
+5. When evaluating HTML or code, ignore formatting and whitespace. Evaluate the structural semantics, classes, and content.
+6. At the bottom, provide a single "Test Suites" summary and ONE short hint (max 2 sentences) if they failed.
+7. If they pass all requirements, output a green-style passing summary.
 7. CRITICAL: On the very last line of your response, you MUST output a raw JSON object stringified in exactly this format, and absolutely nothing else after it:
 __METADATA__={"passed": true/false, "timeComplexity": "...", "spaceComplexity": "..."}
 

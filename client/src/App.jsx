@@ -94,7 +94,7 @@ const App = () => {
       element: <Workspace />,
     },
     {
-      path: "/profile",
+      path: "/profile/:username?",
       element: <Profile />,
     },
     {
@@ -130,7 +130,6 @@ const App = () => {
   return (
     <AuthProvider>
       <RouterProvider router={router} />
-      <Agentation />
     </AuthProvider>
   );
 };

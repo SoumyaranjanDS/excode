@@ -17,9 +17,20 @@ const problemSchema = mongoose.Schema({
     type: String, 
     required: true 
   },
-  brokenCode: { 
-    type: String, 
-    required: true 
+  type: {
+    type: String,
+    enum: ['HTML', 'CSS', 'JS', 'MIX', 'REACT'],
+    default: 'REACT'
+  },
+  starterCode: { 
+    html: { type: String, default: "" },
+    css: { type: String, default: "" },
+    js: { type: String, default: "" },
+    react: { type: String, default: "" }
+  },
+  hiddenCode: {
+    css: { type: String, default: "" },
+    js: { type: String, default: "" }
   },
   hints: { 
     type: [String], 

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import Sidebar from "./components/Sidebar";
 import RightSidebar from "./components/RightSidebar";
 import ProblemCard from "./components/ProblemCard";
@@ -6,6 +8,8 @@ import { technologies, categories } from "./mockData";
 
 const ProblemsExplorer = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTech, setActiveTech] = useState("All");
   const [activeCategory, setActiveCategory] = useState(null);
@@ -25,6 +29,10 @@ const ProblemsExplorer = () => {
             if (statsRes.ok) {
               const statsData = await statsRes.json();
               solvedIds = statsData.solvedProblemIds || [];
+            } else if (statsRes.status === 401) {
+              await logout();
+              navigate('/login');
+              return;
             }
           } catch (e) {
             console.error("Failed to fetch solved stats", e);

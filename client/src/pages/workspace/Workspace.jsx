@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import Editor from '@monaco-editor/react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -29,11 +31,12 @@ export const registerUser = async (userData) => {
 
 const Workspace = () => {
   const { problemId } = useParams();
-  const { backendUser } = useAuth();
+  const { backendUser, logout } = useAuth();
+  const navigate = useNavigate();
   
   const [problem, setProblem] = useState(null);
-  const [code, setCode] = useState("");
-  const [activeTab, setActiveTab] = useState('solution.js');
+  const [code, setCode] = useState({ html: "", css: "", js: "", react: "" });
+  const [activeTab, setActiveTab] = useState('App.jsx');
   const [terminalTab, setTerminalTab] = useState('Terminal');
   const [loading, setLoading] = useState(true);
   
@@ -44,11 +47,15 @@ const Workspace = () => {
   const [submissionStats, setSubmissionStats] = useState(null);
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
     const fetchProblemAndSubmission = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const headers = {};
-        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const headers = { 'Authorization': `Bearer ${token}` };
 
         // Fetch problem
         const response = await fetch(`http://localhost:3000/api/problems/${problemId}`);
@@ -63,10 +70,36 @@ const Workspace = () => {
           if (subRes.ok) {
             const subData = await subRes.json();
             if (subData.code) savedCode = subData.code;
+          } else if (subRes.status === 401) {
+            await logout();
+            navigate('/login');
+            return;
           }
         }
         
-        setCode(savedCode || data.brokenCode || "// Start coding here");
+        const localDraft = localStorage.getItem(`draft_${problemId}`);
+        let initialCode = { html: "", css: "", js: "", react: "" };
+        if (localDraft) {
+          try { initialCode = JSON.parse(localDraft); } catch (e) { initialCode.react = localDraft; }
+        } else if (savedCode && typeof savedCode === 'object') {
+          initialCode = savedCode;
+        } else if (data.starterCode) {
+          initialCode = data.starterCode;
+        } else {
+          initialCode.react = data.brokenCode || "// Start coding here";
+        }
+        setCode(initialCode);
+        
+        // Set initial active tab based on problem type
+        if (['HTML', 'MIX'].includes(data.type)) setActiveTab('index.html');
+        else if (data.type === 'CSS') setActiveTab('styles.css');
+        else if (data.type === 'JS') setActiveTab('script.js');
+        else setActiveTab('App.jsx');
+        
+        // Auto open Web Preview if it's a frontend problem
+        if (['HTML', 'CSS', 'MIX'].includes(data.type)) {
+            setTerminalTab('Web Preview');
+        }
       } catch (error) {
         console.error("Error loading problem/submission:", error);
       } finally {
@@ -140,7 +173,7 @@ const Workspace = () => {
       if (isFinalSubmit && finalMetadata && finalMetadata.passed) {
         const token = localStorage.getItem('token');
         if (token) {
-          await fetch("http://localhost:3000/api/submissions/submit", {
+          const submitRes = await fetch("http://localhost:3000/api/submissions/submit", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -149,11 +182,16 @@ const Workspace = () => {
             body: JSON.stringify({
               problemId,
               code,
-              timeComplexity: finalMetadata.timeComplexity,
-              spaceComplexity: finalMetadata.spaceComplexity,
-              status: 'PASS'
+              timeComplexity: finalMetadata?.timeComplexity || "O(n)",
+              spaceComplexity: finalMetadata?.spaceComplexity || "O(1)",
+              status: finalMetadata?.passed ? "PASS" : "FAIL"
             })
           });
+          if (submitRes.status === 401) {
+            await logout();
+            navigate('/login');
+            return;
+          }
           setSubmissionStats(finalMetadata);
           setShowSuccessModal(true);
         } else {
@@ -281,6 +319,11 @@ const Workspace = () => {
       }
     });
     monaco.editor.setTheme('ExcodeTheme');
+
+    // Force Monaco to recalculate character widths once web fonts are fully loaded
+    document.fonts.ready.then(() => {
+      monaco.editor.remeasureFonts();
+    });
   };
 
   return (
@@ -365,7 +408,11 @@ const Workspace = () => {
                 <h1 className="text-2xl font-geist font-semibold text-white mb-4">{problem.title}</h1>
                 
                 <div className="text-sm text-[#c2c6d6] space-y-4">
-                  <div className="whitespace-pre-wrap">{problem.description}</div>
+                  <div className="prose prose-invert max-w-none prose-pre:bg-[#181c24] prose-pre:border-white/10 prose-pre:border">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {problem.description}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               </>
             ) : (
@@ -387,22 +434,46 @@ const Workspace = () => {
           
           {/* Editor Header */}
           <div className="h-10 border-b border-white/10 bg-[#181c24] flex items-center px-2 gap-2 overflow-x-auto scroll-hidden shrink-0">
-            <div 
-              onClick={() => setActiveTab('solution.js')}
-              className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'solution.js' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}
-            >
-              <span className="material-symbols-outlined text-[#F7DF1E] text-[16px]">javascript</span>
-              <span className="text-xs font-jetbrains">solution.js</span>
-            </div>
+            {problem && ['HTML', 'MIX'].includes(problem.type) && (
+              <div onClick={() => setActiveTab('index.html')} className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'index.html' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}>
+                <span className="text-xs font-jetbrains text-orange-400">html</span>
+                <span className="text-xs font-jetbrains">index.html</span>
+              </div>
+            )}
+            {problem && ['CSS', 'MIX'].includes(problem.type) && (
+              <div onClick={() => setActiveTab('styles.css')} className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'styles.css' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}>
+                <span className="text-xs font-jetbrains text-blue-400">css</span>
+                <span className="text-xs font-jetbrains">styles.css</span>
+              </div>
+            )}
+            {problem && ['JS', 'MIX'].includes(problem.type) && (
+              <div onClick={() => setActiveTab('script.js')} className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'script.js' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}>
+                <span className="text-xs font-jetbrains text-yellow-400">js</span>
+                <span className="text-xs font-jetbrains">script.js</span>
+              </div>
+            )}
+            {(!problem || problem.type === 'REACT') && (
+              <div onClick={() => setActiveTab('App.jsx')} className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors ${activeTab === 'App.jsx' ? 'bg-[#0a0e16] border-t-2 border-primary border-r border-l border-white/10 rounded-t-md' : 'text-[#c2c6d6] hover:bg-[#31353e] rounded'}`}>
+                <span className="text-xs font-jetbrains text-cyan-400">jsx</span>
+                <span className="text-xs font-jetbrains">App.jsx</span>
+              </div>
+            )}
           </div>
 
           {/* Editor Area */}
           <div className="flex-1 relative overflow-hidden">
             <Editor
               height="100%"
-              defaultLanguage="javascript"
-              value={code}
-              onChange={(value) => setCode(value)}
+              language={activeTab === 'index.html' ? 'html' : activeTab === 'styles.css' ? 'css' : 'javascript'}
+              value={activeTab === 'index.html' ? code.html : activeTab === 'styles.css' ? code.css : activeTab === 'script.js' ? code.js : code.react}
+              onChange={(value) => {
+                const newCode = { ...code };
+                if (activeTab === 'index.html') newCode.html = value;
+                else if (activeTab === 'styles.css') newCode.css = value;
+                else if (activeTab === 'script.js') newCode.js = value;
+                else newCode.react = value;
+                setCode(newCode);
+              }}
               onMount={handleEditorDidMount}
               options={{
                 fontFamily: 'JetBrains Mono',
@@ -438,7 +509,7 @@ const Workspace = () => {
           >
             <div className="flex items-center justify-between px-4 border-b border-white/10 bg-[#181c24] h-10 shrink-0">
               <div className="flex items-center gap-4 h-full">
-                {['Terminal', 'Test Results', 'Console'].map(tab => (
+                {['Terminal', 'Test Results', 'Console', 'Web Preview'].map(tab => (
                   <button 
                     key={tab}
                     onClick={() => setTerminalTab(tab)}
@@ -450,9 +521,20 @@ const Workspace = () => {
               </div>
             </div>
             
-            <div className="flex-1 p-4 overflow-y-auto font-jetbrains text-xs bg-[#0a0e16] text-[#c2c6d6] scroll-hidden">
-              {renderTerminalOutput()}
-              {isEvaluating && <div className="mt-2 text-primary flex items-center gap-2"><span className="animate-pulse w-2 h-4 bg-primary inline-block"></span></div>}
+            <div className="flex-1 overflow-y-auto font-jetbrains text-xs bg-[#0a0e16] text-[#c2c6d6] scroll-hidden">
+              {terminalTab === 'Web Preview' ? (
+                <iframe 
+                  title="Web Preview"
+                  sandbox="allow-scripts allow-modals"
+                  srcDoc={`<!DOCTYPE html><html><head><style>${problem?.hiddenCode?.css || ''}\n${code?.css || ''}</style></head><body>${code?.html || ''}<script>${problem?.hiddenCode?.js || ''}\n${code?.js || ''}</script></body></html>`}
+                  className="w-full h-full border-none bg-white"
+                />
+              ) : (
+                <div className="p-4 h-full">
+                  {renderTerminalOutput()}
+                  {isEvaluating && <div className="mt-2 text-primary flex items-center gap-2"><span className="animate-pulse w-2 h-4 bg-primary inline-block"></span></div>}
+                </div>
+              )}
             </div>
           </div>
         </div>
