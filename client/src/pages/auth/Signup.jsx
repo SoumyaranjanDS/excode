@@ -1,21 +1,22 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithPopup } from "firebase/auth";
 import { auth, githubProvider, googleProvider } from "../../firebase";
 import { useAuth } from "../../context/AuthContext";
+import api from "../../api";
 
 const Signup = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const { setBackendUser } = useAuth();
   const [error, setError] = useState("");
 
   const handleBackendAuth = async (firebaseUser, providerId) => {
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/firebase", {
+      const response = await api.post(`/api/auth/firebase`, {
         name: firebaseUser.displayName,
         email: firebaseUser.email,
         firebaseUid: firebaseUser.uid,
@@ -35,9 +36,13 @@ const Signup = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
     setError("");
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/signup", {
+      const response = await api.post(`/api/auth/signup`, {
         name,
         email,
         password,

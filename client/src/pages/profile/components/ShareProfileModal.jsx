@@ -15,7 +15,7 @@ const ShareProfileModal = ({ username, onClose }) => {
   };
 
   const shareOnTwitter = () => {
-    const text = `Check out my DevArena coding profile! 🔥`;
+    const text = `Check out my Excode coding profile! 🔥`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(profileUrl)}`, '_blank');
   };
 

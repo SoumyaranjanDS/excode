@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { label: "Problems", href: "/problems" },
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "Community", href: "/community" },
+  { label: "Why", href: "/why" },
 ];
 
 const Navbar = () => {

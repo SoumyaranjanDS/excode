@@ -45,6 +45,8 @@ const Workspace = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submissionStats, setSubmissionStats] = useState(null);
+  const [consoleLogs, setConsoleLogs] = useState([]);
+  const [execTime, setExecTime] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -58,7 +60,7 @@ const Workspace = () => {
         const headers = { 'Authorization': `Bearer ${token}` };
 
         // Fetch problem
-        const response = await fetch(`http://localhost:3000/api/problems/${problemId}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/problems/${problemId}`);
         if (!response.ok) throw new Error("Failed to fetch problem");
         const data = await response.json();
         setProblem(data);
@@ -66,7 +68,7 @@ const Workspace = () => {
         // Fetch saved submission if token exists
         let savedCode = null;
         if (token) {
-          const subRes = await fetch(`http://localhost:3000/api/submissions/${problemId}`, { headers });
+          const subRes = await fetch(`${import.meta.env.VITE_API_URL}/api/submissions/${problemId}`, { headers });
           if (subRes.ok) {
             const subData = await subRes.json();
             if (subData.code) savedCode = subData.code;
@@ -113,6 +115,18 @@ const Workspace = () => {
   }, [problemId]);
 
   useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data?.type === 'console') {
+        setConsoleLogs(prev => [...prev, { method: event.data.method, args: event.data.data }]);
+      } else if (event.data?.type === 'performance') {
+        setExecTime(event.data.time);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  useEffect(() => {
     if (!loading && problemId && code) {
       localStorage.setItem(`draft_${problemId}`, JSON.stringify(code));
     }
@@ -129,7 +143,7 @@ const Workspace = () => {
     let finalMetadata = null;
 
     try {
-      const response = await fetch("http://localhost:3000/api/evaluate", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ problemId, code })
@@ -179,7 +193,7 @@ const Workspace = () => {
       if (isFinalSubmit && finalMetadata && finalMetadata.passed) {
         const token = localStorage.getItem('token');
         if (token) {
-          const submitRes = await fetch("http://localhost:3000/api/submissions/submit", {
+          const submitRes = await fetch(`${import.meta.env.VITE_API_URL}/api/submissions/submit`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -357,7 +371,7 @@ const Workspace = () => {
             <span className="material-symbols-outlined text-[20px]">settings</span>
           </button>
           <div className="w-px h-5 bg-white/10 hidden sm:block"></div>
-          <Link to="/dashboard" className="flex items-center gap-2 hover:bg-white/5 p-1 rounded-lg transition-colors ml-1">
+          <Link to="/profile" className="flex items-center gap-2 hover:bg-white/5 p-1 rounded-lg transition-colors ml-1">
             <img 
               src={backendUser?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuAgIGP3kJBWkWCRd_1qtVQSDRKnCJEu9Jx6Hu-qyKQ7_1v1BRL9FkODk-3Qgs1m-ytPBzg0CtZ_BTQ7OT36VRUyZfuH9yiBuOI0NaLnoEF1dvCchH3xp9xtFkxj1661CAVrOh-yFjY03vq4ImNKJkosfwjT8aS2XPGuaewhDcdO_kWAlSxZ0x1e7hoIBJywTT7I6ZSjW2AzcL0RoBu1kRe3TNcuYw6v-o6ejZrthvu3stRES6oLALVKeTXRv9j4Ht-QhuLV80KB-FGV"} 
               alt="profile" 
@@ -365,7 +379,7 @@ const Workspace = () => {
             />
             <div className="hidden md:flex flex-col text-left">
               <span className="text-xs font-semibold text-white leading-tight">
-                {backendUser?.name || "Soumyaranjan"}
+                {backendUser?.name || "Bat-man"}
               </span>
               <span className="text-[10px] text-amber-400 flex items-center gap-0.5 leading-none">
                 <span className="material-symbols-outlined text-[12px]">local_fire_department</span>
@@ -396,13 +410,32 @@ const Workspace = () => {
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-6 scroll-hidden">
+          <div className="flex-1 overflow-y-auto p-6 scroll-hidden animate-in fade-in duration-300">
             {loading ? (
-              <div className="flex justify-center py-10">
-                <span className="material-symbols-outlined animate-spin text-primary">refresh</span>
+              <div className="animate-pulse flex flex-col gap-4">
+                {/* Difficulty and Tag pills */}
+                <div className="flex gap-2 mb-2">
+                  <div className="h-6 bg-[#404040] rounded w-16" />
+                  <div className="h-6 bg-[#404040] rounded w-24" />
+                </div>
+                {/* Title */}
+                <div className="h-8 bg-[#404040] rounded w-3/4 mb-4" />
+                {/* Description paragraphs */}
+                <div className="space-y-3">
+                  <div className="h-4 bg-[#333333] rounded w-full" />
+                  <div className="h-4 bg-[#333333] rounded w-[90%]" />
+                  <div className="h-4 bg-[#333333] rounded w-[95%]" />
+                  <div className="h-4 bg-[#333333] rounded w-3/4" />
+                </div>
+                <div className="space-y-3 mt-4">
+                  <div className="h-4 bg-[#333333] rounded w-full" />
+                  <div className="h-4 bg-[#333333] rounded w-[85%]" />
+                </div>
+                {/* Code block skeleton */}
+                <div className="h-32 bg-[#333333] rounded mt-6 border border-white/5" />
               </div>
             ) : problem ? (
-              <>
+              <div className="animate-in fade-in duration-300">
                 <div className="flex flex-wrap gap-2 mb-4">
                   <span className={`px-2 py-1 rounded text-xs font-jetbrains uppercase border ${
                     problem.level === 'Easy' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
@@ -422,9 +455,9 @@ const Workspace = () => {
                     </ReactMarkdown>
                   </div>
                 </div>
-              </>
+              </div>
             ) : (
-              <div className="text-error">Failed to load problem.</div>
+              <div className="text-error animate-in fade-in duration-300">Failed to load problem.</div>
             )}
           </div>
         </aside>
@@ -520,13 +553,18 @@ const Workspace = () => {
           >
             <div className="flex items-center justify-between px-4 border-b border-white/10 bg-[#333333] h-10 shrink-0">
               <div className="flex items-center gap-4 h-full">
-                {['Terminal', 'Web Preview'].map(tab => (
+                {['Terminal', 'Console', 'Web Preview'].map(tab => (
                   <button 
                     key={tab}
                     onClick={() => setTerminalTab(tab)}
-                    className={`text-xs font-jetbrains uppercase h-full border-b-2 transition-colors ${terminalTab === tab ? 'text-white border-primary' : 'text-[#c2c6d6] border-transparent hover:text-white'}`}
+                    className={`text-xs font-jetbrains uppercase h-full border-b-2 transition-colors ${terminalTab === tab ? 'text-white border-primary' : 'text-[#c2c6d6] border-transparent hover:text-white'} flex items-center gap-2`}
                   >
                     {tab}
+                    {tab === 'Console' && consoleLogs.length > 0 && (
+                      <span className="bg-primary text-[#002e6a] rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none animate-pulse">
+                        {consoleLogs.length}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -537,9 +575,63 @@ const Workspace = () => {
                 <iframe 
                   title="Web Preview"
                   sandbox="allow-scripts allow-modals"
-                  srcDoc={`<!DOCTYPE html><html><head><style>${problem?.hiddenCode?.css || ''}\n${code?.css || ''}</style></head><body>${problem?.hiddenCode?.html || ''}\n${code?.html || ''}<script>${problem?.hiddenCode?.js || ''}\n${code?.js || ''}</script></body></html>`}
+                  srcDoc={`<!DOCTYPE html><html><head><script>
+const originalLog = console.log;
+const originalWarn = console.warn;
+const originalError = console.error;
+function safeStringify(obj) {
+  try {
+    if (typeof obj === 'object' && obj !== null) {
+      if (Array.isArray(obj)) return '[' + obj.map(safeStringify).join(', ') + ']';
+      return JSON.stringify(obj);
+    }
+    return String(obj);
+  } catch (e) {
+    return '[Unserializable]';
+  }
+}
+console.log = function(...args) {
+  window.parent.postMessage({ type: 'console', method: 'log', data: args.map(safeStringify) }, '*');
+  originalLog.apply(console, args);
+};
+console.warn = function(...args) {
+  window.parent.postMessage({ type: 'console', method: 'warn', data: args.map(safeStringify) }, '*');
+  originalWarn.apply(console, args);
+};
+console.error = function(...args) {
+  window.parent.postMessage({ type: 'console', method: 'error', data: args.map(safeStringify) }, '*');
+  originalError.apply(console, args);
+};
+window.addEventListener('error', function(e) {
+  window.parent.postMessage({ type: 'console', method: 'error', data: [e.message] }, '*');
+});
+</script><style>${problem?.hiddenCode?.css || ''}\n${code?.css || ''}</style></head><body>${problem?.hiddenCode?.html || ''}\n${code?.html || ''}<script>
+const __start = performance.now();
+try {
+  ${problem?.hiddenCode?.js || ''}
+  ${code?.js || ''}
+} catch (e) {
+  console.error(e.message);
+} finally {
+  const __end = performance.now();
+  window.parent.postMessage({ type: 'performance', time: (__end - __start).toFixed(2) }, '*');
+}
+</script></body></html>`}
                   className="w-full h-full border-none bg-white"
                 />
+              ) : terminalTab === 'Console' ? (
+                <div className="p-4 h-full font-jetbrains flex flex-col gap-1 overflow-y-auto">
+                  {consoleLogs.length === 0 ? (
+                    <div className="text-white/40 italic">Waiting for console output...</div>
+                  ) : (
+                    consoleLogs.map((log, i) => (
+                      <div key={i} className={`flex items-start gap-2 border-b border-white/5 py-1 ${log.method === 'error' ? 'text-red-400' : log.method === 'warn' ? 'text-yellow-400' : 'text-[#c2c6d6]'}`}>
+                        <span className="opacity-50 select-none">&gt;</span>
+                        <div className="whitespace-pre-wrap break-all">{log.args.join(' ')}</div>
+                      </div>
+                    ))
+                  )}
+                </div>
               ) : (
                 <div className="p-4 h-full">
                   {renderTerminalOutput()}
@@ -651,7 +743,7 @@ const Workspace = () => {
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-[#333333] border border-primary/30 rounded-2xl w-2xl overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.15)] animate-in zoom-in-95 duration-300">
-            <div className="h-32 bg-gradient-to-br from-[#262626] to-primary/20 flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="h-32 bg-linear-to-br from-[#262626] to-primary/20 flex flex-col items-center justify-center relative overflow-hidden">
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
               <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center mb-2 z-10 shadow-[0_0_30px_rgba(59,130,246,0.5)]">
                 <span className="material-symbols-outlined text-primary text-3xl">verified</span>
@@ -669,7 +761,7 @@ const Workspace = () => {
                   <span className="text-[#8c909f] text-xs text-center mt-1">Your implementation successfully met all design and structural requirements.</span>
                 </div>
               ) : (
-                <div className="w-full grid grid-cols-2 gap-3 mb-6">
+                <div className={`w-full grid ${execTime ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mb-6`}>
                   <div className="bg-[#262626] border border-white/10 rounded-lg p-3 flex flex-col items-center">
                     <span className="text-[#8c909f] text-[10px] font-jetbrains uppercase tracking-wider mb-1">Time Complexity</span>
                     <span className="text-primary font-jetbrains font-semibold">{submissionStats?.timeComplexity || 'O(N)'}</span>
@@ -678,6 +770,12 @@ const Workspace = () => {
                     <span className="text-[#8c909f] text-[10px] font-jetbrains uppercase tracking-wider mb-1">Space Complexity</span>
                     <span className="text-green-400 font-jetbrains font-semibold">{submissionStats?.spaceComplexity || 'O(1)'}</span>
                   </div>
+                  {execTime && (
+                    <div className="bg-[#262626] border border-white/10 rounded-lg p-3 flex flex-col items-center">
+                      <span className="text-[#8c909f] text-[10px] font-jetbrains uppercase tracking-wider mb-1">Execution Time</span>
+                      <span className="text-yellow-400 font-jetbrains font-semibold">{execTime}ms</span>
+                    </div>
+                  )}
                 </div>
               )}
 

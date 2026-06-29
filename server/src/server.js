@@ -14,7 +14,25 @@ const app = express()
 connectDB()
 
 // Middleware
-app.use(cors())
+const frontendUrl = process.env.FRONTEND_URL?.endsWith('/') 
+  ? process.env.FRONTEND_URL.slice(0, -1) 
+  : process.env.FRONTEND_URL;
+
+const allowedOrigins = [
+  frontendUrl, 
+  "http://localhost:5173"
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}))
 app.use(express.json())
 
 const PORT = process.env.PORT || 3000

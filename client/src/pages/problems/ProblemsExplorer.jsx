@@ -6,6 +6,36 @@ import RightSidebar from "./components/RightSidebar";
 import ProblemCard from "./components/ProblemCard";
 import { technologies, categories } from "./mockData";
 
+const ProblemCardSkeleton = () => (
+  <div className="bg-surface-container rounded-lg p-md flex items-start gap-md border border-outline-variant/30 animate-pulse">
+    {/* Icon Area */}
+    <div className="w-12 h-12 rounded bg-surface-variant shrink-0" />
+    
+    <div className="flex-1 space-y-3">
+      {/* Title & Badge */}
+      <div className="flex items-center gap-3">
+        <div className="h-5 bg-surface-variant rounded w-48" />
+        <div className="h-5 bg-surface-variant rounded-full w-16" />
+      </div>
+      
+      {/* Description lines */}
+      <div className="space-y-2">
+        <div className="h-3 bg-surface-variant rounded w-3/4" />
+        <div className="h-3 bg-surface-variant rounded w-1/2" />
+      </div>
+      
+      {/* Footer tags */}
+      <div className="flex gap-2 pt-2">
+        <div className="h-6 w-20 bg-surface-variant rounded-full" />
+        <div className="h-6 w-24 bg-surface-variant rounded-full" />
+      </div>
+    </div>
+    
+    {/* Button skeleton */}
+    <div className="h-9 w-24 bg-surface-variant rounded-lg shrink-0" />
+  </div>
+);
+
 const ProblemsExplorer = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { logout } = useAuth();
@@ -24,7 +54,7 @@ const ProblemsExplorer = () => {
         let solvedIds = [];
         if (token) {
           try {
-            const statsRes = await fetch("http://localhost:3000/api/submissions/stats/profile", {
+            const statsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/submissions/stats/profile`, {
               headers: { Authorization: `Bearer ${token}` }
             });
             if (statsRes.ok) {
@@ -41,7 +71,7 @@ const ProblemsExplorer = () => {
           }
         }
 
-        const response = await fetch("http://localhost:3000/api/problems");
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/problems`);
         if (!response.ok) throw new Error("Failed to fetch problems");
         const data = await response.json();
         
@@ -52,14 +82,14 @@ const ProblemsExplorer = () => {
           difficulty: dbProblem.level,
           color: dbProblem.level === "Easy" ? "green" : dbProblem.level === "Medium" ? "amber" : "red",
           technology: dbProblem.type || "MERN",
-          category: dbProblem.type === "HTML" || dbProblem.type === "CSS" ? "Frontend" : "Full Stack",
+          category: dbProblem.type === "HTML" || dbProblem.type === "CSS" || dbProblem.type === "JS" ? "Frontend" : "Full Stack",
           description: dbProblem.description,
           xp: dbProblem.xp || 50,
           timeEst: dbProblem.timeEstimation || "10m",
           successRate: null, // Removed success rate as per user request
           status: solvedIds.includes(dbProblem._id) ? "Solved" : "Solve",
           locked: false
-        }));
+        })).sort(() => Math.random() - 0.5);
 
         setProblems(formattedProblems);
       } catch (error) {
@@ -219,17 +249,16 @@ const ProblemsExplorer = () => {
           </div>
 
           {/* Challenge List */}
-          <div className="space-y-sm flex-1">
+          <div className="space-y-sm flex-1 animate-in fade-in duration-300">
             {loading ? (
-              <div className="w-full py-10 flex justify-center items-center">
-                <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
-              </div>
+              // Render 5 skeletons while loading
+              [...Array(5)].map((_, i) => <ProblemCardSkeleton key={i} />)
             ) : filteredProblems.length > 0 ? (
               filteredProblems.map((problem) => (
                 <ProblemCard key={problem.id} problem={problem} />
               ))
             ) : (
-              <div className="w-full py-10 flex flex-col items-center justify-center text-on-surface-variant">
+              <div className="w-full py-10 flex flex-col items-center justify-center text-on-surface-variant animate-in fade-in zoom-in-95 duration-300">
                 <span className="material-symbols-outlined text-4xl mb-2 opacity-50">search_off</span>
                 <p>No challenges found matching your criteria.</p>
                 <button 
@@ -238,7 +267,7 @@ const ProblemsExplorer = () => {
                     setActiveTech("All");
                     setActiveCategory(null);
                   }}
-                  className="mt-4 text-primary hover:underline text-sm font-medium"
+                  className="mt-4 text-primary hover:underline text-sm font-medium transition-colors"
                 >
                   Clear filters
                 </button>

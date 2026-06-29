@@ -9,6 +9,7 @@ import Feature from "./pages/public/Feature";
 import Footer from "./pages/public/Footer";
 import Navbar from "./pages/public/Navbar";
 import ComingSoon from "./pages/public/ComingSoon";
+import Why from "./pages/public/Why";
 
 //auth Pages
 import Login from "./pages/auth/Login";
@@ -66,6 +67,10 @@ const App = () => {
         {
           path: "feture",
           element: <Feature />,
+        },
+        {
+          path: "why",
+          element: <Why />,
         },
         {
           path: "dashboard",

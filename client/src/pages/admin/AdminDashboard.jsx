@@ -61,7 +61,7 @@ const AdminDashboard = () => {
   const fetchProblems = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:3000/api/admin/problems", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/problems`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -106,7 +106,7 @@ const AdminDashboard = () => {
     if (!window.confirm("Are you sure you want to delete this problem?")) return;
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:3000/api/admin/problems/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/problems/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -125,7 +125,7 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:3000/api/admin/generate", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -162,7 +162,7 @@ const AdminDashboard = () => {
     setSaving(true);
     try {
       const token = localStorage.getItem("token");
-      const url = editMode ? `http://localhost:3000/api/admin/problems/${editId}` : "http://localhost:3000/api/admin/problems";
+      const url = editMode ? `${import.meta.env.VITE_API_URL}/api/admin/problems/${editId}` : `${import.meta.env.VITE_API_URL}/api/admin/problems`;
       const method = editMode ? "PUT" : "POST";
       
       const res = await fetch(url, {

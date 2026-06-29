@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../api";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithPopup } from "firebase/auth";
 import { auth, githubProvider, googleProvider } from "../../firebase";
@@ -14,7 +14,7 @@ const Login = () => {
 
   const handleBackendAuth = async (firebaseUser, providerId) => {
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/firebase", {
+      const response = await api.post(`/api/auth/firebase`, {
         name: firebaseUser.displayName,
         email: firebaseUser.email,
         firebaseUid: firebaseUser.uid,
@@ -36,7 +36,7 @@ const Login = () => {
     e.preventDefault();
     setError("");
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/login", {
+      const response = await api.post(`/api/auth/login`, {
         email,
         password,
       });

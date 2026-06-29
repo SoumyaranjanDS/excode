@@ -15,7 +15,7 @@ const ClaimUsernameModal = ({ backendUser, setBackendUser, onClose }) => {
     
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3000/api/auth/username', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/username`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -49,12 +49,12 @@ const ClaimUsernameModal = ({ backendUser, setBackendUser, onClose }) => {
         </button>
         
         <h2 className="text-2xl font-geist font-semibold text-on-surface mb-2">Claim Username</h2>
-        <p className="text-on-surface-variant font-inter text-sm mb-6">Create a unique handle to share your DevArena profile with the world.</p>
+        <p className="text-on-surface-variant font-inter text-sm mb-6">Create a unique handle to share your Excode profile with the world.</p>
         
         <div className="mb-6">
           <label className="block text-xs font-jetbrains text-on-surface-variant uppercase tracking-wider mb-2">Username</label>
           <div className="flex bg-background border border-outline-variant/50 rounded-lg overflow-hidden focus-within:border-primary transition-colors">
-            <span className="px-3 py-3 text-on-surface-variant bg-surface-container-lowest border-r border-outline-variant/50 font-jetbrains">devarena.com/profile/</span>
+            <span className="px-3 py-3 text-on-surface-variant bg-surface-container-lowest border-r border-outline-variant/50 font-jetbrains">excode.com/profile/</span>
             <input 
               type="text" 
               value={username}

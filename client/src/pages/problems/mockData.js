@@ -11,6 +11,9 @@ export const categories = [
 ];
 
 export const technologies = [
+  "HTML",
+  "CSS",
+  "JS",
   "React",
   "Node.js",
   "TypeScript",

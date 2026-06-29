@@ -5,6 +5,54 @@ import ClaimUsernameModal from "./components/ClaimUsernameModal";
 import Sidebar from "../problems/components/Sidebar";
 import { useAuth } from "../../context/AuthContext";
 
+const ProfileSkeleton = () => (
+  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1280px] mx-auto animate-pulse">
+    <aside className="lg:col-span-3 space-y-6">
+      <div className="rounded-xl p-6 flex flex-col items-center border border-white/10 bg-surface-container/50">
+        <div className="w-32 h-32 rounded-full bg-surface-variant mb-4" />
+        <div className="w-32 h-6 bg-surface-variant rounded mb-2" />
+        <div className="w-24 h-4 bg-surface-variant rounded mb-4" />
+        <div className="w-28 h-6 bg-surface-variant rounded-full mb-6" />
+        <div className="w-full flex gap-2 mb-6">
+          <div className="flex-1 h-10 bg-surface-variant rounded-lg" />
+        </div>
+        <div className="w-full space-y-3">
+          <div className="w-full h-4 bg-surface-variant rounded" />
+          <div className="w-5/6 h-4 bg-surface-variant rounded" />
+          <div className="w-4/6 h-4 bg-surface-variant rounded" />
+        </div>
+      </div>
+      
+      <div className="rounded-xl p-6 border border-white/10 bg-surface-container/50">
+        <div className="w-32 h-6 bg-surface-variant rounded mb-4" />
+        <div className="w-full h-2 bg-surface-variant rounded-full mb-4" />
+        <div className="grid grid-cols-2 gap-2">
+          <div className="h-16 bg-surface-variant rounded-lg" />
+          <div className="h-16 bg-surface-variant rounded-lg" />
+        </div>
+      </div>
+    </aside>
+    
+    <div className="lg:col-span-9 space-y-8">
+      <div className="rounded-xl p-6 border border-white/10 bg-surface-container/50">
+        <div className="w-48 h-8 bg-surface-variant rounded mb-6" />
+        <div className="flex flex-col md:flex-row gap-6 items-center">
+          <div className="w-48 h-48 rounded-full bg-surface-variant shrink-0" />
+          <div className="flex-1 w-full space-y-4">
+            <div className="h-4 bg-surface-variant rounded w-full" />
+            <div className="h-4 bg-surface-variant rounded w-5/6" />
+            <div className="h-4 bg-surface-variant rounded w-4/6" />
+          </div>
+        </div>
+      </div>
+      <div className="rounded-xl p-6 border border-white/10 bg-surface-container/50">
+        <div className="w-48 h-8 bg-surface-variant rounded mb-6" />
+        <div className="w-full h-48 bg-surface-variant rounded" />
+      </div>
+    </div>
+  </div>
+);
+
 const Profile = () => {
   const { username } = useParams();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -38,7 +86,7 @@ const Profile = () => {
     const fetchStats = async () => {
       try {
         if (isPublicView && !isOwnProfile) {
-          const res = await fetch(`http://localhost:3000/api/submissions/stats/public/${username}`);
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/submissions/stats/public/${username}`);
           if (res.ok) {
             const data = await res.json();
             setStats(data);
@@ -52,7 +100,7 @@ const Profile = () => {
              navigate('/login');
              return;
           }
-          const res = await fetch("http://localhost:3000/api/submissions/stats/profile", {
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/submissions/stats/profile`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (res.ok) {
@@ -188,7 +236,7 @@ const Profile = () => {
           <div className="flex items-center gap-2">
             <img src="/excode.svg" alt="excode logo" className="w-8 h-8" />
             <span className="font-geist text-2xl font-bold text-primary tracking-tight">
-              DevArena
+              Excode
             </span>
           </div>
           <button
@@ -203,10 +251,13 @@ const Profile = () => {
 
         {/* Center Content */}
         <section className="flex-1 h-full overflow-y-auto custom-scrollbar p-6 lg:p-8 pb-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1280px] mx-auto">
-            
-            {/* Left Sidebar: Profile Details (Col Span 3) */}
-            <aside className="lg:col-span-3 space-y-6">
+          {loading ? (
+            <ProfileSkeleton />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1280px] mx-auto animate-in fade-in duration-300">
+              
+              {/* Left Sidebar: Profile Details (Col Span 3) */}
+              <aside className="lg:col-span-3 space-y-6">
               
               {/* Avatar Card */}
               <div 
@@ -464,9 +515,9 @@ const Profile = () => {
                 </div>
 
               </div>
-
+              </div>
             </div>
-          </div>
+          )}
         </section>
       </main>
 

@@ -1,32 +1,23 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import Lightfall from "../../components/Lightfall";
 
 const Hero = () => {
   const { backendUser } = useAuth();
   
   return (
     <section className="relative w-full overflow-hidden">
-        {/* Lightfall Background */}
-        <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-[calc(100%+96px)] w-[1200px] md:w-full md:left-0 md:translate-x-0" style={{ zIndex: 0 }}>
-            <Lightfall
-                colors={['#A6C8FF', '#5227FF', '#FF9FFC']}
-                backgroundColor="#0A29FF"
-                speed={0.3}
-                streakCount={3}
-                streakWidth={0.5}
-                streakLength={1}
-                glow={0.2}
-                density={0.4}
-                twinkle={0.25}
-                zoom={3.2}
-                backgroundGlow={0.2}
-                opacity={1}
-                mouseInteraction={true}
-                mouseStrength={1}
-                mouseRadius={0.6}
-            />
+        {/* Simple Dotted Grid Background */}
+        <div 
+            className="absolute inset-0 z-0 opacity-[0.15]"
+            style={{
+                backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)',
+                backgroundSize: '32px 32px',
+                backgroundPosition: '0 0'
+            }}
+        >
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12 md:pt-20 md:pb-24 text-center relative z-10 w-full mt-[54px]">
@@ -62,6 +53,13 @@ const Hero = () => {
             >
                 Explore Challenges
             </a>
+            <Link
+                to="/why"
+                className="border border-transparent text-on-surface-variant hover:text-white px-6 py-4 rounded-lg hover:bg-surface-container-low transition-colors duration-200 text-base font-inter flex items-center gap-2"
+            >
+                <span className="material-symbols-outlined text-[20px]">help</span>
+                Why
+            </Link>
         </div>
 
         {/* Hero Visuals - The Terminal */}
