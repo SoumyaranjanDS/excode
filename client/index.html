@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="en" class="dark">
   <head>
+    <!-- Google Tag Manager (Replace GTM-XXXXXXX with your actual GTM ID) -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-G5X2EYB0E1');</script>
+    <!-- End Google Tag Manager -->
+    
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/excode.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,15 +20,7 @@
     <link rel="preconnect" href="https://devarena-3d2e2.firebaseapp.com" crossorigin>
     <link rel="preconnect" href="https://apis.google.com" crossorigin>
     
-    <!-- Google Analytics 4 (GA4) Setup -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-G5X2EYB0E1"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-G5X2EYB0E1');
-    </script>
-    
+
     <title>excode</title>
     <!-- Load fonts asynchronously to avoid render-blocking -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
@@ -35,6 +35,11 @@
     </noscript>
   </head>
   <body class="bg-background text-on-background">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-G5X2EYB0E1"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

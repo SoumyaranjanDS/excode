@@ -144,6 +144,13 @@ server {
     root /var/www/<your-project-folder>/<your-frontend-folder>/dist;
     index index.html;
 
+    # Enable Gzip Compression for Performance (Technical SEO)
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript;
+    gzip_disable "MSIE [1-6]\.";
     location / {
         try_files $uri $uri/ /index.html;
     }

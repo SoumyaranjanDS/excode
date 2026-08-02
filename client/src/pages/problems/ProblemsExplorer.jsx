@@ -127,8 +127,8 @@ const ProblemsExplorer = () => {
   return (
     <>
       <Seo 
-        title="Coding Problems & Assessments"
-        description="Browse our library of AI-evaluated coding challenges. Practice your skills in React, Node.js, Python, and more in a real IDE environment."
+        title="Docker Sandbox Coding Assessments"
+        description="Browse our library of AI-evaluated coding challenges. A powerful HackerRank and Codility alternative for testing verified coding skills in a real IDE environment."
         url="/problems"
       />
       <div className="bg-background text-on-surface font-body-md h-screen overflow-hidden flex selection:bg-primary-container selection:text-on-primary-container">

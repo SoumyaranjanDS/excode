@@ -1,0 +1,5 @@
+Off-Page SEO (Backlinks)
+ Submit Excode to relevant directories: Product Hunt, BetaList, SaaSHub, AlternativeTo, G2 (as a new listing), Capterra
+ Write a launch post on Dev.to, Hashnode, or Medium linking back to excode.in — dev-focused audiences overlap perfectly with your product
+ Get listed on "best coding assessment tools" roundup articles if possible — outreach to those blog authors
+ LinkedIn/Instagram content (which you're already planning) — social signals don't directly rank you, but they drive referral traffic and backlinks organically when people share
