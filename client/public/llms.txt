@@ -1,0 +1,12 @@
+# excode - Interactive Development Arena
+
+excode is a modern, interactive development platform designed for building, testing, and deploying your code seamlessly.
+
+## Important Links
+- [Main Application](https://excode.in)
+- [Problems Explorer](https://excode.in/problems)
+- [Coding Workspace](https://excode.in/workspace)
+- [User Profiles](https://excode.in/profile)
+
+## Description
+This application provides an interactive coding arena, supporting various programming languages, real-time code evaluation, and submission tracking for competitive programming and skill building.
