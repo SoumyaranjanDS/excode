@@ -1,30 +1,39 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, Suspense, lazy } from "react";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import { ReactLenis } from 'lenis/react';
 import gsap from 'gsap';
 
-// Page imports
-import Home from "./pages/public/Home";
-import Feature from "./pages/public/Feature";
-import Footer from "./pages/public/Footer";
+// Eagerly loaded (essential for layout/initial render)
 import Navbar from "./pages/public/Navbar";
-import ComingSoon from "./pages/public/ComingSoon";
-import Why from "./pages/public/Why";
+import Footer from "./pages/public/Footer";
+import Home from "./pages/public/Home"; // Keep Home eager for fastest possible FCP!
 
-//auth Pages
-import Login from "./pages/auth/Login";
-import Signup from "./pages/auth/Signup";
-import Dashboard from "./pages/dashboard/Dashboard";
-import Profile from "./pages/profile/Profile";
-import AdminDashboard from "./pages/admin/AdminDashboard";
+// Lazy loaded (split into separate chunks)
+const Feature = lazy(() => import("./pages/public/Feature"));
+const ComingSoon = lazy(() => import("./pages/public/ComingSoon"));
+const Why = lazy(() => import("./pages/public/Why"));
 
-import ProblemsExplorer from "./pages/problems/ProblemsExplorer";
-import Workspace from "./pages/workspace/Workspace";
-import Leaderboard from "./components/Leaderboard";
-import Community from "./components/Community";
+// Auth Pages
+const Login = lazy(() => import("./pages/auth/Login"));
+const Signup = lazy(() => import("./pages/auth/Signup"));
+const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
+const Profile = lazy(() => import("./pages/profile/Profile"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+
+const ProblemsExplorer = lazy(() => import("./pages/problems/ProblemsExplorer"));
+const Workspace = lazy(() => import("./pages/workspace/Workspace"));
+const Leaderboard = lazy(() => import("./components/Leaderboard"));
+const Community = lazy(() => import("./components/Community"));
 
 import { AuthProvider } from "./context/AuthContext";
 import { Agentation } from "agentation";
+
+// Fallback loader for lazy-loaded pages
+const PageLoader = () => (
+  <div className="flex h-[calc(100vh-80px)] w-full items-center justify-center bg-background">
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+  </div>
+);
 
 const Layout = () => {
   const lenisRef = useRef();
@@ -46,7 +55,9 @@ const Layout = () => {
       <div className="flex flex-col min-h-screen w-full bg-background text-on-background relative">
         <Navbar />
         <main className="grow flex flex-col">
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </main>
         <Footer />
       </div>
@@ -66,69 +77,69 @@ const App = () => {
         },
         {
           path: "feture",
-          element: <Feature />,
+          element: <Suspense fallback={<PageLoader />}><Feature /></Suspense>,
         },
         {
           path: "why",
-          element: <Why />,
+          element: <Suspense fallback={<PageLoader />}><Why /></Suspense>,
         },
         {
           path: "dashboard",
-          element: <Dashboard />,
+          element: <Suspense fallback={<PageLoader />}><Dashboard /></Suspense>,
         },
         {
           path: "community",
-          element: <Community />,
+          element: <Suspense fallback={<PageLoader />}><Community /></Suspense>,
         },
       ],
     },
     {
       path: "/login",
-      element: <Login />,
+      element: <Suspense fallback={<PageLoader />}><Login /></Suspense>,
     },
     {
       path: "/signup",
-      element: <Signup />,
+      element: <Suspense fallback={<PageLoader />}><Signup /></Suspense>,
     },
     {
       path: "/problems",
-      element: <ProblemsExplorer />,
+      element: <Suspense fallback={<PageLoader />}><ProblemsExplorer /></Suspense>,
     },
     {
       path: "/workspace/:problemId",
-      element: <Workspace />,
+      element: <Suspense fallback={<PageLoader />}><Workspace /></Suspense>,
     },
     {
       path: "/profile/:username?",
-      element: <Profile />,
+      element: <Suspense fallback={<PageLoader />}><Profile /></Suspense>,
     },
     {
       path: "/admin",
-      element: <AdminDashboard />,
+      element: <Suspense fallback={<PageLoader />}><AdminDashboard /></Suspense>,
     },
     {
       path: "/learning-paths",
-      element: <ComingSoon />,
+      element: <Suspense fallback={<PageLoader />}><ComingSoon /></Suspense>,
     },
     {
       path: "/competitions",
-      element: <ComingSoon />,
+      element: <Suspense fallback={<PageLoader />}><ComingSoon /></Suspense>,
     },
     {
       path: "/assessments",
-      element: <ComingSoon />,
+      element: <Suspense fallback={<PageLoader />}><ComingSoon /></Suspense>,
     },
     {
       path: "/leaderboard",
-      element: <ComingSoon />,
+      element: <Suspense fallback={<PageLoader />}><ComingSoon /></Suspense>,
     },
     {
       path: "/achievements",
-      element: <ComingSoon />,
+      element: <Suspense fallback={<PageLoader />}><ComingSoon /></Suspense>,
     },
     {
       path: "/settings",
-      element: <ComingSoon />,
+      element: <Suspense fallback={<PageLoader />}><ComingSoon /></Suspense>,
     },
   ]);
 

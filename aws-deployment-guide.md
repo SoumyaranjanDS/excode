@@ -148,6 +148,16 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
+    # Cache static assets to improve performance (Lighthouse caching fix)
+    location ~* \.(?:ico|css|js|gif|jpe?g|png|woff2?|eot|ttf|svg)$ {
+        expires 6M;
+        access_log off;
+        add_header Cache-Control "public, max-age=15552000, immutable";
+        
+        # Ensure React handles anything not found in assets
+        try_files $uri =404;
+    }
+
     # Proxy API requests to PM2 Backend
     location /api/ {
         proxy_pass http://localhost:3000;
