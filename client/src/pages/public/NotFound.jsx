@@ -55,6 +55,7 @@ const NotFound = () => {
       <Seo 
         title="404 - Lost in Space" 
         description="The page you are looking for has drifted off into the cosmos."
+        noindex={true}
       />
       <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center justify-center text-on-background selection:bg-primary/30">
         

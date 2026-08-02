@@ -7,7 +7,8 @@ const Seo = ({
   url, 
   image = 'https://excode.in/excode.svg', // Default OG image
   type = 'website',
-  structuredData
+  structuredData,
+  noindex = false
 }) => {
   const siteTitle = title ? `${title} | excode` : 'excode - Interactive Development Arena';
   const siteDescription = description || 'excode is an AI-powered developer skill assessment platform and interactive coding arena. Build, test, and deploy code in sandboxed environments.';
@@ -17,6 +18,7 @@ const Seo = ({
       {/* Standard SEO */}
       <title>{siteTitle}</title>
       <meta name="description" content={siteDescription} />
+      {noindex && <meta name="robots" content="noindex, nofollow" />}
       
       {/* Canonical URL to prevent duplicate content issues */}
       {url && <link rel="canonical" href={`https://excode.in${url}`} />}
