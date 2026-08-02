@@ -12,6 +12,7 @@ import Home from "./pages/public/Home"; // Keep Home eager for fastest possible 
 // Lazy loaded (split into separate chunks)
 const Feature = lazy(() => import("./pages/public/Feature"));
 const ComingSoon = lazy(() => import("./pages/public/ComingSoon"));
+const NotFound = lazy(() => import("./pages/public/NotFound"));
 const Why = lazy(() => import("./pages/public/Why"));
 
 // Auth Pages
@@ -141,6 +142,10 @@ const App = () => {
     {
       path: "/settings",
       element: <Suspense fallback={<PageLoader />}><ComingSoon /></Suspense>,
+    },
+    {
+      path: "*",
+      element: <Suspense fallback={<PageLoader />}><NotFound /></Suspense>,
     },
   ]);
 
