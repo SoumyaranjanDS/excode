@@ -19,7 +19,8 @@ const frontendUrl = process.env.FRONTEND_URL?.endsWith('/')
   : process.env.FRONTEND_URL;
 
 const allowedOrigins = [
-  frontendUrl, 
+  frontendUrl,
+  frontendUrl?.includes('https://www.') ? frontendUrl.replace('https://www.', 'https://') : frontendUrl?.replace('https://', 'https://www.'),
   "http://localhost:5173"
 ].filter(Boolean);
 
