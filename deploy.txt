@@ -1,0 +1,78 @@
+================================================================================
+                    DEVARENA DEPLOYMENT & UPDATE GUIDE
+================================================================================
+
+This document explains how to connect to your AWS EC2 server and deploy new 
+code updates when you make changes to your project.
+
+
+--------------------------------------------------------------------------------
+1. HOW TO ACCESS THE SERVER
+--------------------------------------------------------------------------------
+Whenever you need to update the server or check logs, you must first connect 
+to it via SSH from your local Windows PowerShell/Terminal.
+
+Command:
+    ssh -i "C:\Users\soumy\Downloads\excode-aws-keys.pem" ubuntu@51.21.106.195
+
+(Make sure you are pointing to the correct location of your .pem key file).
+
+
+--------------------------------------------------------------------------------
+2. HOW TO UPDATE THE CODE
+--------------------------------------------------------------------------------
+Once you are logged into the server, you need to pull your latest code from GitHub.
+
+Command:
+    cd /var/www/excode/excode
+    git pull origin main
+
+(Note: Change 'main' to 'master' if that is your default branch).
+
+
+--------------------------------------------------------------------------------
+3. DEPLOYING FRONTEND CHANGES (React/Vite)
+--------------------------------------------------------------------------------
+If you made changes to the 'client' folder (UI, components, pages), you must 
+rebuild the frontend so Nginx can serve the new files.
+
+Commands:
+    cd /var/www/excode/excode/client
+    npm install       # (Only needed if you added new packages)
+    npm run build
+
+
+--------------------------------------------------------------------------------
+4. DEPLOYING BACKEND CHANGES (Node/Express)
+--------------------------------------------------------------------------------
+If you made changes to the 'server' folder (APIs, database logic), you must 
+restart the PM2 process so it loads the new code.
+
+Commands:
+    cd /var/www/excode/excode/server
+    npm install       # (Only needed if you added new packages)
+    pm2 restart excode-api
+
+
+--------------------------------------------------------------------------------
+5. IMPORTANT FILE PATHS ON THE SERVER
+--------------------------------------------------------------------------------
+If you ever need to debug or change configurations, here is where everything lives:
+
+Project Root Directory:
+    /var/www/excode/excode
+
+Frontend Build Directory (Served to users):
+    /var/www/excode/excode/client/dist
+
+Nginx Configuration File:
+    /etc/nginx/sites-available/excode
+
+    (To edit Nginx, run: sudo nano /etc/nginx/sites-available/excode)
+    (To restart Nginx after editing: sudo systemctl restart nginx)
+
+Backend Environment Variables (.env):
+    /var/www/excode/excode/server/.env
+
+PM2 Logs (To see `console.log` output or backend errors):
+    pm2 logs excode-api
