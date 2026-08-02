@@ -60,21 +60,21 @@ const NotFound = () => {
       <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center justify-center text-on-background selection:bg-primary/30">
         
         {/* Deep space radial gradient */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background to-background pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-fuchsia-500/20 via-background to-background pointer-events-none" />
 
         {/* Stars */}
         {stars.map((star, i) => (
           <div
             key={star.id}
             ref={(el) => (starsRef.current[i] = el)}
-            className="absolute text-primary/40"
+            className="absolute text-fuchsia-400/40"
             style={{ top: star.top, left: star.left }}
           >
             <Star size={star.size} fill="currentColor" />
           </div>
         ))}
 
-        <div ref={containerRef} className="z-10 flex flex-col items-center text-center p-6 max-w-lg">
+        <div ref={containerRef} className="z-10 flex flex-col items-center text-center p-6">
           {/* 404 Text Background */}
           <h1 className="text-[150px] md:text-[200px] font-black tracking-tighter text-surface-variant/20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none pointer-events-none -z-10">
             404
@@ -82,8 +82,8 @@ const NotFound = () => {
 
           {/* Floating Astronaut/Rocket */}
           <div ref={rocketRef} className="relative mb-12">
-            <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
-            <Rocket size={120} className="text-primary relative z-10 drop-shadow-2xl" strokeWidth={1.5} />
+            <div className="absolute inset-0 bg-fuchsia-500/20 blur-3xl rounded-full" />
+            <Rocket size={120} className="text-fuchsia-500 relative z-10 drop-shadow-2xl" strokeWidth={1.5} />
           </div>
 
           <h2 className="text-4xl md:text-5xl font-headline-md font-bold mb-4">
@@ -96,7 +96,7 @@ const NotFound = () => {
 
           <Link 
             to="/" 
-            className="group relative inline-flex items-center gap-2 px-8 py-4 bg-primary text-on-primary rounded-full font-semibold overflow-hidden transition-all hover:scale-105 active:scale-95"
+            className="group relative inline-flex items-center gap-2 px-8 py-4 bg-fuchsia-600 text-white rounded-full font-semibold overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(192,38,211,0.4)]"
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
             <Home size={20} className="relative z-10" />
