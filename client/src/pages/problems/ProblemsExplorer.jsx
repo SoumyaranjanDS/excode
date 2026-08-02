@@ -5,6 +5,7 @@ import Sidebar from "./components/Sidebar";
 import RightSidebar from "./components/RightSidebar";
 import ProblemCard from "./components/ProblemCard";
 import { technologies, categories } from "./mockData";
+import Seo from "../../components/Seo";
 
 const ProblemCardSkeleton = () => (
   <div className="bg-surface-container rounded-lg p-md flex items-start gap-md border border-outline-variant/30 animate-pulse">
@@ -124,7 +125,13 @@ const ProblemsExplorer = () => {
   });
 
   return (
-    <div className="bg-background text-on-surface font-body-md h-screen overflow-hidden flex selection:bg-primary-container selection:text-on-primary-container">
+    <>
+      <Seo 
+        title="Coding Problems & Assessments"
+        description="Browse our library of AI-evaluated coding challenges. Practice your skills in React, Node.js, Python, and more in a real IDE environment."
+        url="/problems"
+      />
+      <div className="bg-background text-on-surface font-body-md h-screen overflow-hidden flex selection:bg-primary-container selection:text-on-primary-container">
       {/* Left Sidebar */}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
@@ -280,6 +287,7 @@ const ProblemsExplorer = () => {
         <RightSidebar submissionDates={submissionDates} />
       </main>
     </div>
+    </>
   );
 };
 

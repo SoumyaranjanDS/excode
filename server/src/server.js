@@ -44,6 +44,36 @@ app.use("/api/problems", problemRoutes)
 app.use("/api/evaluate", evaluationRoutes)
 app.use("/api/submissions", submissionRoutes)
 
+app.get("/api/sitemap.xml", (req, res) => {
+  const baseUrl = process.env.FRONTEND_URL || "https://excode.in";
+  
+  // Core static routes for indexing
+  const staticRoutes = [
+    "/",
+    "/problems",
+    "/why",
+    "/feture",
+    "/login",
+    "/signup"
+  ];
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${staticRoutes
+  .map(route => {
+    return `  <url>
+    <loc>${baseUrl}${route}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>${route === '/' ? '1.0' : '0.8'}</priority>
+  </url>`;
+  })
+  .join('\n')}
+</urlset>`;
+
+  res.header("Content-Type", "application/xml");
+  res.send(sitemap);
+})
+
 app.get("/", (req, res) => {
     res.json("Hello World")
 })

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, Suspense, lazy } from "react";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import { HelmetProvider } from 'react-helmet-async';
 import { ReactLenis } from 'lenis/react';
 import gsap from 'gsap';
 
@@ -144,9 +145,11 @@ const App = () => {
   ]);
 
   return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <HelmetProvider>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </HelmetProvider>
   );
 };
 
