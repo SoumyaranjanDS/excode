@@ -26,6 +26,8 @@ const ProblemsExplorer = lazy(() => import("./pages/problems/ProblemsExplorer"))
 const Workspace = lazy(() => import("./pages/workspace/Workspace"));
 const Leaderboard = lazy(() => import("./components/Leaderboard"));
 const Community = lazy(() => import("./components/Community"));
+const ArticlesIndex = lazy(() => import("./pages/public/ArticlesIndex"));
+const ArticlePost = lazy(() => import("./pages/public/ArticlePost"));
 
 import { AuthProvider } from "./context/AuthContext";
 import { Agentation } from "agentation";
@@ -106,6 +108,24 @@ const App = () => {
     {
       path: "/problems",
       element: <Suspense fallback={<PageLoader />}><ProblemsExplorer /></Suspense>,
+    },
+    {
+      path: "/articles",
+      element: <Layout />,
+      children: [
+        {
+          index: true,
+          element: <Suspense fallback={<PageLoader />}><ArticlesIndex /></Suspense>,
+        },
+        {
+          path: ":slug",
+          element: <Suspense fallback={<PageLoader />}><ArticlePost /></Suspense>,
+        }
+      ]
+    },
+    {
+      path: "/problems/:category/:slug",
+      element: <Suspense fallback={<PageLoader />}><Workspace /></Suspense>,
     },
     {
       path: "/workspace/:problemId",

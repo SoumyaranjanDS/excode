@@ -3,7 +3,7 @@ import { Problem } from "../models/problem.model.js";
 export const getProblems = async (req, res) => {
   try {
     const problems = await Problem.find()
-      .select("title level description type xp timeEstimation isPublished createdAt")
+      .select("title slug category level description type xp timeEstimation isPublished createdAt")
       .sort({ createdAt: -1 });
 
     res.status(200).json(problems);
@@ -16,7 +16,14 @@ export const getProblems = async (req, res) => {
 export const getProblemById = async (req, res) => {
   try {
     const { id } = req.params;
-    const problem = await Problem.findById(id).select("-instructionPrompt -expectedOutput");
+    let problem;
+    
+    // Check if the id parameter is actually an ObjectId, otherwise assume it's a slug
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      problem = await Problem.findById(id).select("-instructionPrompt -expectedOutput");
+    } else {
+      problem = await Problem.findOne({ slug: id }).select("-instructionPrompt -expectedOutput");
+    }
     
     if (!problem) {
       return res.status(404).json({ message: "Problem not found" });

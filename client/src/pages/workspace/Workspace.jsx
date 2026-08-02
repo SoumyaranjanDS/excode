@@ -30,7 +30,8 @@ export const registerUser = async (userData) => {
 `;
 
 const Workspace = () => {
-  const { problemId } = useParams();
+  const { category, slug } = useParams();
+  const problemId = slug || useParams().problemId; // Fallback just in case
   const { backendUser, logout } = useAuth();
   const navigate = useNavigate();
   
@@ -447,6 +448,21 @@ const Workspace = () => {
                   <span className="px-2 py-1 bg-[#404040] text-[#c2c6d6] rounded text-xs font-jetbrains uppercase border border-white/10">Full Stack</span>
                 </div>
                 <h1 className="text-2xl font-geist font-semibold text-white mb-4">{problem.title}</h1>
+                
+                {problem.real_world_context && (
+                  <div className="mb-6">
+                    <h2 className="text-lg font-geist font-semibold text-white mb-2 pb-2 border-b border-white/10">
+                      The Real-World Problem
+                    </h2>
+                    <p className="text-sm text-[#c2c6d6] italic">
+                      {problem.real_world_context}
+                    </p>
+                  </div>
+                )}
+                
+                <h2 className="text-lg font-geist font-semibold text-white mb-2 pb-2 border-b border-white/10">
+                  Problem Statement
+                </h2>
                 
                 <div className="text-sm text-[#c2c6d6] space-y-4">
                   <div className="prose prose-invert max-w-none prose-pre:bg-[#333333] prose-pre:border-white/10 prose-pre:border">

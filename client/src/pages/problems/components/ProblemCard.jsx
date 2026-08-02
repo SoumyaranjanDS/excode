@@ -5,7 +5,9 @@ const ProblemCard = ({ problem }) => {
 
   const handleAction = () => {
     if (!problem.locked) {
-      navigate(`/workspace/${problem.id}`);
+      const category = problem.category || problem.technology?.toLowerCase() || 'general';
+      const slug = problem.slug || problem.id || problem._id;
+      navigate(`/problems/${category}/${slug}`);
     }
   };
 

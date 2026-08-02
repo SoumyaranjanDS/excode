@@ -7,6 +7,19 @@ const problemSchema = mongoose.Schema({
     unique: true,
     trim: true
   },
+  slug: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  category: {
+    type: String,
+    default: 'general'
+  },
+  real_world_context: {
+    type: String,
+    default: ''
+  },
   level: {
     type: String,
     required: true,

@@ -5,11 +5,18 @@ import { User } from "../models/user.model.js";
 // Save a new submission
 export const saveSubmission = async (req, res) => {
   try {
-    const { problemId, code, timeComplexity, spaceComplexity, status } = req.body;
+    let { problemId, code, timeComplexity, spaceComplexity, status } = req.body;
     const userId = req.user.id;
 
     if (!problemId || !code) {
       return res.status(400).json({ message: "problemId and code are required." });
+    }
+
+    // Resolve slug to ObjectId if necessary
+    if (!problemId.match(/^[0-9a-fA-F]{24}$/)) {
+      const problem = await Problem.findOne({ slug: problemId }).select("_id");
+      if (!problem) return res.status(404).json({ message: "Problem not found for this slug." });
+      problemId = problem._id;
     }
 
     let submission = await Submission.findOne({ userId, problemId });
@@ -47,8 +54,15 @@ export const saveSubmission = async (req, res) => {
 // Get user's submission for a specific problem
 export const getSubmission = async (req, res) => {
   try {
-    const { problemId } = req.params;
+    let { problemId } = req.params;
     const userId = req.user.id;
+
+    // Resolve slug to ObjectId if necessary
+    if (!problemId.match(/^[0-9a-fA-F]{24}$/)) {
+      const problem = await Problem.findOne({ slug: problemId }).select("_id");
+      if (!problem) return res.status(404).json({ message: "Problem not found for this slug." });
+      problemId = problem._id;
+    }
 
     const submission = await Submission.findOne({ userId, problemId });
     if (!submission) {

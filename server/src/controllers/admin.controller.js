@@ -64,11 +64,15 @@ Return ONLY a valid JSON object with the keys: "description", "hints", "instruct
 };
 
 export const saveProblem = async (req, res) => {
-  const { title, level, description, starterCode, hiddenCode, type, hints, instructionPrompt, expectedOutput } = req.body;
+  const { title, level, description, starterCode, hiddenCode, type, hints, instructionPrompt, expectedOutput, category, real_world_context } = req.body;
   
   try {
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
     const newProblem = new Problem({
       title,
+      slug,
+      category: category || type.toLowerCase(),
+      real_world_context,
       level,
       description,
       starterCode,
@@ -100,12 +104,16 @@ export const getAllProblemsAdmin = async (req, res) => {
 
 export const updateProblem = async (req, res) => {
   const { id } = req.params;
-  const { title, level, description, starterCode, hiddenCode, type, hints, instructionPrompt, expectedOutput } = req.body;
+  const { title, level, description, starterCode, hiddenCode, type, hints, instructionPrompt, expectedOutput, category, real_world_context } = req.body;
   
   try {
+    const slug = title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : undefined;
+    const updateData = { title, level, description, starterCode, hiddenCode, type, hints, expectedOutput, instructionPrompt, category, real_world_context };
+    if (slug) updateData.slug = slug;
+
     const problem = await Problem.findByIdAndUpdate(
       id,
-      { title, level, description, starterCode, hiddenCode, type, hints, expectedOutput, instructionPrompt },
+      updateData,
       { new: true, runValidators: true }
     );
     if (!problem) return res.status(404).json({ message: "Problem not found" });
