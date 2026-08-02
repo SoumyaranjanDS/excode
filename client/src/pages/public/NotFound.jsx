@@ -90,7 +90,7 @@ const NotFound = () => {
             Lost in Space
           </h2>
           
-          <p className="text-on-surface-variant text-lg mb-8 max-w-md">
+          <p className="text-on-surface-variant text-lg mb-8">
             Houston, we have a problem. The page you're looking for has drifted off into the cosmos and cannot be found.
           </p>
 
